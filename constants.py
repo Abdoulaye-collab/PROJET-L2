@@ -1,0 +1,9 @@
+# constants.py
+GRID_SIZE = 10
+CELL_SIZE = 50
+OFFSET_X = 150
+OFFSET_Y = 100
+
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 800
+SCREEN_TITLE = "Bataille Navale"
