@@ -1,9 +1,7 @@
-# game.py
 import arcade
 from player import Player
 from ai import AI
 from constants import GRID_SIZE, CELL_SIZE, OFFSET_X, OFFSET_Y
-
 
 class Game(arcade.View):
     def __init__(self):
@@ -40,7 +38,7 @@ class Game(arcade.View):
         # --- Grille ---
         for row in range(GRID_SIZE):
             for col in range(GRID_SIZE):
-                # On calcule les coordonnées du centre de chaque case
+                # Calcul des coordonnées du centre de chaque case
                 center_x = OFFSET_X + col * CELL_SIZE + CELL_SIZE / 2
                 center_y = OFFSET_Y + row * CELL_SIZE + CELL_SIZE / 2
 
@@ -79,7 +77,7 @@ class Game(arcade.View):
         )
 
     def on_mouse_press(self, x, y, _button, _modifiers):
-        # Convertit le clic en coordonnées de grille
+        # Convertir le clic en coordonnées de grille
         col = int((x - OFFSET_X) // CELL_SIZE)
         row = int((y - OFFSET_Y) // CELL_SIZE)
 
@@ -94,5 +92,15 @@ class Game(arcade.View):
         # Tour de l'IA
         x, y = self.ai.play()
         hit = self.player.receive_shot(x, y)
-        print(f"L’IA tire sur {x}, {y} : {'touché' if hit else 'raté'}")
+        print(f"L'IA tire sur {x}, {y} : {'touché' if hit else 'raté'}")
         self.turn = "player"
+
+# Fonction principale pour lancer le jeu
+def main():
+    window = arcade.Window(800, 600, "Bataille Navale")  # Crée une fenêtre de jeu
+    game_view = Game()  # Crée l'instance de la vue du jeu
+    window.show_view(game_view)  # Affiche la vue du jeu
+    arcade.run()  # Lance la boucle principale du jeu
+
+if __name__ == "__main__":
+    main()
