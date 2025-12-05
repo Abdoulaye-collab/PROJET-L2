@@ -13,7 +13,6 @@ GRID_OFFSET_Y = 100
 
 PROJECTILE_SPEED = 15  # vitesse de la boule pour animation tir
 
-
 class Game:
     def __init__(self, screen):
         self.screen = screen
@@ -42,7 +41,7 @@ class Game:
 
         # Tour du joueur ou de l'IA
         self.player_turn = True
-        self.text_status = f"Tour de {self.player.name} !"  # texte dynamique tour
+        self.text_status = f"Tour de {self.player.name} !"
 
     # ------------------------ CARTES ------------------------
     def ship_positions_hit(self, player, row, col):
@@ -144,9 +143,16 @@ class Game:
             if not available:
                 return
             row, col = random.choice(available)
-        self.shoot(self.enemy, row, col)
+
+        result = self.shoot(self.enemy, row, col)
+        # Phrase IA selon résultat
+        if result in ("Touché", "Renforcé"):
+            self.ai_phrase_to_display = get_ai_phrase(self.ai_personality, "hit")
+        else:
+            self.ai_phrase_to_display = get_ai_phrase(self.ai_personality, "miss")
+
         self.turn_count += 1
-        self.player_turn = True  # redeviens tour joueur
+        self.player_turn = True
         self.text_status = f"Tour de {self.player.name} !"
 
     # ------------------------ ÉVÉNEMENTS ------------------------
@@ -177,7 +183,7 @@ class Game:
                 self.awaiting_target = False
             return
 
-        # tir normal
+        # tir normal (vérifie que c’est bien le tour du joueur)
         if self.player_turn:
             col = (x - GRID_OFFSET_X_ENEMY) // CELL_SIZE
             row = (y - GRID_OFFSET_Y) // CELL_SIZE
@@ -187,13 +193,14 @@ class Game:
                     self.extra_shot -= 1
                 else:
                     self.player_turn = False
-                    self.text_status = f"Tour de {self.enemy.name}..."
+                    self.text_status = "Tour de l'IA..."
+                    # délai avant IA
                     self.ia_delay = 250
                     self.ia_pending = True
 
     # ------------------------ UPDATE ------------------------
     def update(self):
-        # gestion texte dynamique déjà gérée dans handle_event et ai_play
+        # texte dynamique déjà mis à jour dans ai_play et handle_event
         # gestion animation projectile
         if self.projectile:
             target_row, target_col = self.projectile["target"]
@@ -229,13 +236,13 @@ class Game:
                 elif val == -1:
                     color = (255,0,0)
                 elif val == -2:
-                    color = (0,105,148)  # eau touchée = fond eau
+                    color = (0,105,148)  # pas de changement couleur
                 else:
                     color = (0,105,148)
                 pygame.draw.rect(self.screen, color, rect)
                 pygame.draw.rect(self.screen, (0,0,0), rect, 1)
 
-                # dessiner croix noire si case touchée eau
+                # croix noire sur eau touchée
                 if val == -2:
                     start = (rect.left + 5, rect.top + 5)
                     end = (rect.right - 5, rect.bottom - 5)
@@ -274,9 +281,9 @@ class Game:
             phrase_surf = self.font.render(self.ai_phrase_to_display, True, (255,255,255))
             self.screen.blit(phrase_surf, (GRID_OFFSET_X_ENEMY + name_enemy.get_width() + 10, GRID_OFFSET_Y - 40))
 
-        # texte dynamique tour
+        # texte dynamique tour (décalé légèrement à droite)
         status_surf = self.font.render(getattr(self, "text_status", ""), True, (0,255,0) if self.player_turn else (255,0,0))
-        self.screen.blit(status_surf, (50, 50))
+        self.screen.blit(status_surf, (80, 50))
 
         # animation projectile
         if self.projectile:
@@ -286,4 +293,6 @@ class Game:
         if self.winner:
             msg = self.title_font.render(f"{self.winner.name} a gagné !", True, (255,255,0))
             self.screen.blit(msg, (200, 100))
+
+
 
