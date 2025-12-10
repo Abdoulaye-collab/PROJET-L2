@@ -283,7 +283,7 @@ class Game:
 
         # texte dynamique tour (décalé légèrement à droite)
         status_surf = self.font.render(getattr(self, "text_status", ""), True, (0,255,0) if self.player_turn else (255,0,0))
-        self.screen.blit(status_surf, (80, 50))
+        self.screen.blit(status_surf, (80, 20))
 
         # animation projectile
         if self.projectile:
@@ -293,6 +293,7 @@ class Game:
         if self.winner:
             msg = self.title_font.render(f"{self.winner.name} a gagné !", True, (255,255,0))
             self.screen.blit(msg, (200, 100))
+
 
 
 
