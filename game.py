@@ -1,17 +1,20 @@
 import pygame
 import random
 from player import Player, ALL_CARDS
-from settings import CARDS_ENABLED,COLOR_TEXT_MAGIC,FONT_NAME,COLOR_UI_BACKGROUND
+from settings import CARDS_ENABLED, COLOR_TEXT_MAGIC, FONT_NAME, COLOR_UI_BACKGROUND
 from ai_llm import get_ai_move
 from ai_personalities import AI_PERSONALITIES, get_ai_phrase
+from cards import apply_card_effect  # Import de la logique externe
 from settings import (
     COLOR_OCEAN_DARK, COLOR_TEXT_MAGIC, COLOR_WATER_LIT, 
     COLOR_HIT, COLOR_SHIP, 
     CELL_SIZE, GRID_SIZE,
-    GRID_OFFSET_X_PLAYER, GRID_OFFSET_X_ENEMY, GRID_OFFSET_Y
+    GRID_OFFSET_X_PLAYER, GRID_OFFSET_X_ENEMY
 )
 
-PROJECTILE_SPEED = 15  # vitesse de la boule pour animation tir
+# CHANGEMENT : GRID_OFFSET_Y réduit pour remonter les grilles
+GRID_OFFSET_Y = 105
+PROJECTILE_SPEED = 9  
 
 class Game:
     def __init__(self, screen):
@@ -25,96 +28,59 @@ class Game:
         self.selected_card = None
         self.awaiting_target = False
 
-        # IA personnalité
         self.ai_personality = "Gentille"
         self.ai_phrase_to_display = ""
-
-        # tirs supplémentaires (Double Tir)
         self.extra_shot = 0
-
-        # Animation de tir
-        self.projectile = None  # dict : {"shooter": player, "target": (row, col), "pos": (x,y), "color": (r,g,b)}
-
-        # Timer IA
+        self.projectile = None  
         self.ia_delay = 0
         self.ia_pending = False
-
-        # Tour du joueur ou de l'IA
         self.player_turn = True
         self.text_status = f"Tour de {self.player.name} !"
 
-    # ------------------------ CARTES ------------------------
     def ship_positions_hit(self, player, row, col):
         for ship, positions in player.ship_positions.items():
             if (row, col) in positions:
                 positions.remove((row, col))
                 break
 
-    def play_card(self, player, card_name, target_row=None, target_col=None):
-        if not CARDS_ENABLED or target_row is None or target_col is None:
-            return
-
-        enemy = self.enemy if player == self.player else self.player
-
-        if card_name == "50:50":
-            chance = random.random()
-            target = enemy if chance < 0.5 else player
-            if target.board[target_row][target_col] == 1:
-                target.board[target_row][target_col] = -1
-                self.ship_positions_hit(target, target_row, target_col)
-                if target == enemy:
-                    player.hits += 1
-                else:
-                    enemy.hits += 1
-
-        elif card_name == "Juge":
-            if player.hits >= enemy.hits:
-                if enemy.grid[target_row][target_col] == 1:
-                    enemy.grid[target_row][target_col] = -1
-                    self.ship_positions_hit(enemy, target_row, target_col)
-                    player.hits += 1
-            else:
-                for ship, positions in player.ship_positions.items():
-                    if positions:
-                        r, c = positions[0]
-                        if player.board[r][c] == 1:
-                            player.board[r][c] = -1
-                            self.ship_positions_hit(player, r, c)
-                        break
-
-        elif card_name == "END":
-            if self.turn_count <= 2 and player.hits >= 3:
-                self.winner = player
-            else:
-                for ship, positions in player.ship_positions.items():
-                    if ship not in player.reinforced_ships and positions:
-                        player.reinforced_ships.append(ship)
-                        break
-
-        elif card_name == "Double Tir":
-            self.extra_shot = max(self.extra_shot, 1)
-            self.shoot(player, target_row, target_col)
-
-    # ------------------------ TIRS ------------------------
     def shoot(self, shooter, row, col):
         target = self.enemy if shooter == self.player else self.player
+        
+        # --- SÉCURITÉ BOUCLIER ---
+        if shooter == self.enemy and "Bouclier_Actif" in target.reinforced_ships:
+            target.reinforced_ships.remove("Bouclier_Actif")
+            self.text_status = "BOUCLIER : Tir ennemi bloqué !"
+            return "Bloqué"
+            
         if not (0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE):
             return "Invalid"
-
+        
         val = target.board[row][col]
 
-        # Init animation projectile
+        # --- GESTION VISUELLE DES COULEURS ---
         start_x = GRID_OFFSET_X_PLAYER + CELL_SIZE*5 if shooter == self.player else GRID_OFFSET_X_ENEMY + CELL_SIZE*5
         start_y = GRID_OFFSET_Y + CELL_SIZE*5
+        
+        # Couleur par défaut (Rouge pour Joueur, Jaune pour IA)
         proj_color = (255, 0, 0) if shooter == self.player else (255, 255, 0)
+        
+        # Changement de couleur selon la carte active
+        if self.selected_card == "Bombe":
+            proj_color = (255, 165, 0)  # Orange
+        elif self.selected_card == "Salve":
+            proj_color = (255, 50, 50)   # Rouge vif / Flash
+        elif self.selected_card == "Radar":
+            proj_color = (0, 255, 255)   # Cyan / Électrique
+
         self.projectile = {"shooter": shooter, "target": (row, col), "pos": [start_x, start_y], "color": proj_color}
 
+        # --- LOGIQUE DE TOUCHE ---
         if val == 1:
             for ship, pos in target.ship_positions.items():
                 if (row, col) in pos and ship in target.reinforced_ships:
                     target.reinforced_ships.remove(ship)
                     return "Renforcé"
-
+        
             target.board[row][col] = -1
             self.ship_positions_hit(target, row, col)
             shooter.hits += 1
@@ -132,7 +98,6 @@ class Game:
             if all(len(pos) == 0 for pos in p.ship_positions.values()):
                 self.winner = self.enemy if p == self.player else self.player
 
-    # ------------------------ IA ------------------------
     def ai_play(self):
         if self.winner:
             return
@@ -145,7 +110,6 @@ class Game:
             row, col = random.choice(available)
 
         result = self.shoot(self.enemy, row, col)
-        # Phrase IA selon résultat
         if result in ("Touché", "Renforcé"):
             self.ai_phrase_to_display = get_ai_phrase(self.ai_personality, "hit")
         else:
@@ -155,13 +119,12 @@ class Game:
         self.player_turn = True
         self.text_status = f"Tour de {self.player.name} !"
 
-    # ------------------------ ÉVÉNEMENTS ------------------------
     def handle_event(self, event):
         if event.type != pygame.MOUSEBUTTONDOWN or self.winner:
             return
         x, y = event.pos
 
-        # cartes
+        # 1. Gestion de la sélection des cartes
         card_x, card_y = 50, 520
         for card in self.player.cards:
             rect = pygame.Rect(card_x, card_y, 120, 40)
@@ -169,39 +132,39 @@ class Game:
                 if CARDS_ENABLED:
                     self.selected_card = card
                     self.awaiting_target = True
-                break
+                return # On arrête ici pour ne pas tirer en sélectionnant
             card_x += 130
 
+        # 2. Utilisation de l'effet de la carte sélectionnée
         if self.selected_card and self.awaiting_target:
             col = (x - GRID_OFFSET_X_ENEMY) // CELL_SIZE
             row = (y - GRID_OFFSET_Y) // CELL_SIZE
             if 0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE:
-                self.play_card(self.player, self.selected_card, row, col)
+                apply_card_effect(self, self.selected_card, row, col)
                 if self.selected_card in self.player.cards:
                     self.player.cards.remove(self.selected_card)
                 self.selected_card = None
                 self.awaiting_target = False
+                return # INDISPENSABLE : on ne tire pas après avoir utilisé une carte
             return
 
-        # tir normal (vérifie que c’est bien le tour du joueur)
+        # 3. Tir normal (seulement si aucune carte n'est en cours d'usage)
         if self.player_turn:
             col = (x - GRID_OFFSET_X_ENEMY) // CELL_SIZE
             row = (y - GRID_OFFSET_Y) // CELL_SIZE
             if 0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE:
-                self.shoot(self.player, row, col)
-                if self.extra_shot > 0:
-                    self.extra_shot -= 1
-                else:
-                    self.player_turn = False
-                    self.text_status = "Tour de l'IA..."
-                    # délai avant IA
-                    self.ia_delay = 250
-                    self.ia_pending = True
+                res = self.shoot(self.player, row, col)
+                if res != "Déjà tiré":
+                    if self.extra_shot > 0:
+                        self.extra_shot -= 1
+                        # On reste en player_turn = True
+                    else:
+                        self.player_turn = False
+                        self.text_status = "Tour de l'IA..."
+                        self.ia_delay = 250
+                        self.ia_pending = True
 
-    # ------------------------ UPDATE ------------------------
     def update(self):
-        # texte dynamique déjà mis à jour dans ai_play et handle_event
-        # gestion animation projectile
         if self.projectile:
             target_row, target_col = self.projectile["target"]
             target_x = GRID_OFFSET_X_ENEMY + target_col*CELL_SIZE if self.projectile["shooter"] == self.player else GRID_OFFSET_X_PLAYER + target_col*CELL_SIZE
@@ -215,7 +178,6 @@ class Game:
                 self.projectile["pos"][0] += PROJECTILE_SPEED * dx / dist
                 self.projectile["pos"][1] += PROJECTILE_SPEED * dy / dist
 
-        # gestion timer IA
         if self.ia_pending and not self.projectile:
             if self.ia_delay > 0:
                 self.ia_delay -= 16
@@ -223,60 +185,43 @@ class Game:
                 self.ai_play()
                 self.ia_pending = False
 
-    # ------------------------ DESSIN ------------------------
     def draw_grid(self, player, offset_x, show_ships=True):
+        # 1. EFFET VISUEL BOUCLIER (Aura bleue)
+        if player == self.player and "Bouclier_Actif" in player.reinforced_ships:
+            shield_rect = pygame.Rect(offset_x - 5, GRID_OFFSET_Y - 5, (GRID_SIZE * CELL_SIZE) + 10, (GRID_SIZE * CELL_SIZE) + 10)
+            pygame.draw.rect(self.screen, (0, 191, 255), shield_rect, 4, border_radius=5)
+
+        # 2. DESSIN DES CASES
         for row in range(GRID_SIZE):
             for col in range(GRID_SIZE):
                 rect = pygame.Rect(offset_x + col*CELL_SIZE, GRID_OFFSET_Y + row*CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 val = player.board[row][col]
-                if val == 0:
-                    color = COLOR_OCEAN_DARK
-                elif val == 1:
+                color = COLOR_OCEAN_DARK
+                
+                if val == 1:
                     color = COLOR_SHIP if show_ships else COLOR_OCEAN_DARK
                 elif val == -1:
                     color = COLOR_HIT
-                elif val == -2:
-                    color = COLOR_OCEAN_DARK
-                else:
-                    color = COLOR_OCEAN_DARK
-
+                
                 pygame.draw.rect(self.screen, color, rect)
                 pygame.draw.rect(self.screen, (0,0,0), rect, 1)
 
-                # croix noire sur eau touchée
+                # Croix pour les tirs manqués
                 if val == -2:
-                    start = (rect.left + 5, rect.top + 5)
-                    end = (rect.right - 5, rect.bottom - 5)
-                    pygame.draw.line(self.screen, (0,0,0), start, end, 2)
-                    start2 = (rect.left + 5, rect.bottom - 5)
-                    end2 = (rect.right - 5, rect.top + 5)
-                    pygame.draw.line(self.screen, (0,0,0), start2, end2, 2)
+                    pygame.draw.line(self.screen, (0,0,0), (rect.left+5, rect.top+5), (rect.right-5, rect.bottom-5), 2)
+                    pygame.draw.line(self.screen, (0,0,0), (rect.left+5, rect.bottom-5), (rect.right-5, rect.top+5), 2)
 
-    # ------------------ DESSIN DES COORDONNÉES (A-J et 1-10) ------------------
-
-        for row in range(GRID_SIZE):
-            # Calculer la position au milieu à gauche de la ligne
-            y_pos = GRID_OFFSET_Y + row * CELL_SIZE + CELL_SIZE // 2
+        # 3. AFFICHAGE DES COORDONNÉES (Une seule fois)
+        for i in range(GRID_SIZE):
+            # Nombres (1 à 10) à gauche de la grille
+            num_surf = self.font.render(str(i + 1), True, COLOR_TEXT_MAGIC)
+            num_rect = num_surf.get_rect(center=(offset_x - 20, GRID_OFFSET_Y + i * CELL_SIZE + CELL_SIZE // 2))
+            self.screen.blit(num_surf, num_rect)
             
-            # Le texte est '1', '2', ..., '10'
-            text_surf = self.font.render(str(row + 1), True, COLOR_TEXT_MAGIC)
-            
-            # Positionnement : 10 pixels à gauche de la grille
-            text_rect = text_surf.get_rect(center=(offset_x - 10, y_pos))
-            self.screen.blit(text_surf, text_rect)
-
-        # 2. Étiquettes Alphabetiques (A à J) - Horizontales
-        for col in range(GRID_SIZE):
-            # Calculer la position au milieu au-dessus de la colonne
-            x_pos = offset_x + col * CELL_SIZE + CELL_SIZE // 2
-            
-            # Le texte est 'A', 'B', ..., 'J'
-            letter = chr(ord('A') + col)
-            text_surf = self.font.render(letter, True, COLOR_TEXT_MAGIC)
-            
-            # Positionnement : 10 pixels au-dessus de la grille
-            text_rect = text_surf.get_rect(center=(x_pos, GRID_OFFSET_Y - 10))
-            self.screen.blit(text_surf, text_rect)
+            # Lettres (A à J) au-dessus de la grille
+            let_surf = self.font.render(chr(65 + i), True, COLOR_TEXT_MAGIC)
+            let_rect = let_surf.get_rect(center=(offset_x + i * CELL_SIZE + CELL_SIZE // 2, GRID_OFFSET_Y - 20))
+            self.screen.blit(let_surf, let_rect)
 
     def draw_cards(self, player):
         if not CARDS_ENABLED:
@@ -297,30 +242,22 @@ class Game:
         self.draw_grid(self.enemy, GRID_OFFSET_X_ENEMY, show_ships=False)
         self.draw_cards(self.player)
 
-        # noms
+        # Noms au-dessus des grilles
         name_player = self.title_font.render(self.player.name, True, (255,255,255))
         name_enemy = self.title_font.render(self.enemy.name, True, (255,255,255))
-        self.screen.blit(name_player, (GRID_OFFSET_X_PLAYER, GRID_OFFSET_Y - 40))
-        self.screen.blit(name_enemy, (GRID_OFFSET_X_ENEMY, GRID_OFFSET_Y - 40))
+        self.screen.blit(name_player, (GRID_OFFSET_X_PLAYER, GRID_OFFSET_Y - 70))
+        self.screen.blit(name_enemy, (GRID_OFFSET_X_ENEMY, GRID_OFFSET_Y - 70))
 
-        # phrase IA
         if self.ai_phrase_to_display:
             phrase_surf = self.font.render(self.ai_phrase_to_display, True, (255,255,255))
-            self.screen.blit(phrase_surf, (GRID_OFFSET_X_ENEMY + name_enemy.get_width() + 10, GRID_OFFSET_Y - 40))
+            self.screen.blit(phrase_surf, (GRID_OFFSET_X_ENEMY + name_enemy.get_width() + 10, GRID_OFFSET_Y - 50))
 
-        # texte dynamique tour (décalé légèrement à droite)
-        status_surf = self.font.render(getattr(self, "text_status", ""), True, (0,255,0) if self.player_turn else (255,0,0))
+        status_surf = self.font.render(self.text_status, True, (0,255,0) if self.player_turn else (255,0,0))
         self.screen.blit(status_surf, (80, 20))
 
-        # animation projectile
         if self.projectile:
             pygame.draw.circle(self.screen, self.projectile["color"], (int(self.projectile["pos"][0]), int(self.projectile["pos"][1])), 8)
 
-        # victoire
         if self.winner:
             msg = self.title_font.render(f"{self.winner.name} a gagné !", True, (255,255,0))
             self.screen.blit(msg, (200, 100))
-
-
-
-
