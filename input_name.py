@@ -1,8 +1,14 @@
 import pygame
+from settings import FONT_NAME,COLOR_OCEAN_DARK, COLOR_TEXT_MAGIC, COLOR_UI_BACKGROUND
 
 def input_names(screen):
     pygame.font.init()
-    font = pygame.font.SysFont("Arial", 35)
+    font = pygame.font.Font(FONT_NAME, 35)
+
+    # --- Création d'une police plus grande pour le titre de Bienvenue ---
+    welcome_font = pygame.font.Font(FONT_NAME, 50) 
+    
+    font = pygame.font.Font(FONT_NAME, 30) # La police originale pour les instructions
     clock = pygame.time.Clock()
     input_box_player = pygame.Rect(300, 200, 300, 50)
     input_box_ai = pygame.Rect(300, 300, 300, 50)
@@ -51,13 +57,87 @@ def input_names(screen):
                 if event.key == pygame.K_RETURN and text_player.strip() != '':
                     done = True
 
-        screen.fill((0, 105, 148))
-        instr_surf = font.render("Entrez le nom du joueur et de l'IA puis ENTER", True, (255,255,255))
-        screen.blit(instr_surf, (50,100))
+        screen.fill(COLOR_OCEAN_DARK)
+
+        #  DESSIN DU PANNEAU (Fond de Parchemin/Tablette)
+        # ----------------------------------------------------------------------
+        
+        # Dimensions de la zone centrale 
+        PANEL_WIDTH = 450
+        PANEL_HEIGHT = 280
+        
+        # Centre horizontal de la fenêtre (900/2 = 450)
+        center_x = screen.get_width() // 2 
+        
+        # Position du panneau : centré horizontalement, commence sous le titre de Bienvenue
+        PANEL_RECT = pygame.Rect(
+            center_x - (PANEL_WIDTH // 2),  # x: Début du panneau
+            100,                            # y: Démarre sous le titre de Bienvenue (Y=50)
+            PANEL_WIDTH,
+            PANEL_HEIGHT
+        )
+        
+        # Couleur du panneau (Ex: un gris clair pour simuler la pierre ou un parchemin)
+        PANEL_COLOR = COLOR_UI_BACKGROUND
+        
+        # Dessin du panneau (doit être dessiné en premier pour être à l'arrière-plan)
+        pygame.draw.rect(screen, PANEL_COLOR, PANEL_RECT)
+        pygame.draw.rect(screen, (0, 0, 0), PANEL_RECT, 3) # Bordure noire
+        # Centre X du panneau (450) - Largeur de la boîte (300) / 2 = 300
+        BOX_CENTERED_X = center_x - (input_box_player.width // 2)
+        input_box_player.x = BOX_CENTERED_X
+        input_box_ai.x = BOX_CENTERED_X
+        input_box_player.y = 180 # Décalé de 10px plus bas
+        input_box_ai.y = 290     # Décalé de 10px plus bas
+
+        # 1. Titre de Bienvenue
+        welcome_text = "Bienvenue, Sorcier de la Flotte !"
+        welcome_surf = welcome_font.render(welcome_text, True, COLOR_TEXT_MAGIC)
+        welcome_rect = welcome_surf.get_rect(center=(screen.get_width() // 2, 50))
+        SHADOW_COLOR = (150, 0, 200) 
+        shadow_rect = welcome_surf.get_rect(center=(screen.get_width()//2 + 3, 53))
+        screen.blit(welcome_font.render("Bienvenue, Sorcier de la Flotte !", True, SHADOW_COLOR), shadow_rect)
+        
+        
+        screen.blit(welcome_surf, welcome_rect)
+        
+        #  AJOUT DU LOGO THÉMATIQUE
+        LOGO_FILENAME = 'wizard_logo.png' 
+        LOGO_SIZE = 120
+        
+        try:
+            # Charger et redimensionner l'image
+            logo_image = pygame.image.load(LOGO_FILENAME)
+            logo_image = logo_image.convert_alpha()
+            logo_image = pygame.transform.scale(logo_image, (LOGO_SIZE, LOGO_SIZE))
+            # Positionnement : Centré horizontalement, sous le titre (ex: Y=200)
+            logo_rect = logo_image.get_rect(center=(screen.get_width()//2, 475)) 
+            
+            screen.blit(logo_image, logo_rect)
+        except pygame.error:
+            # Afficher un message d'erreur si l'image manque
+            print(f"ATTENTION: Le logo '{LOGO_FILENAME}' est manquant ou invalide.")
+        
+        # 2. Étiquette du Joueur
+        label_player_text = "Nom du Joueur"
+        label_player_surf = font.render(label_player_text, True, COLOR_TEXT_MAGIC)
+        label_player_rect = label_player_surf.get_rect(centerx=input_box_player.centerx, y=140)
+        screen.blit(label_player_surf, label_player_rect)
+        # 3. Étiquette de l'IA
+        label_ai_text = "Nom du Rival (IA)"
+        label_ai_surf = font.render(label_ai_text, True, COLOR_TEXT_MAGIC)
+        label_ai_rect = label_ai_surf.get_rect(centerx=input_box_ai.centerx, y=250)
+        screen.blit(label_ai_surf, label_ai_rect)
+
         pygame.draw.rect(screen, color_player, input_box_player, 2)
         pygame.draw.rect(screen, color_ai, input_box_ai, 2)
-        screen.blit(font.render(text_player, True, (255,255,255)), (input_box_player.x+5, input_box_player.y+5))
-        screen.blit(font.render(text_ai, True, (255,255,255)), (input_box_ai.x+5, input_box_ai.y+5))
+        
+        PADDING_X = 5
+        PADDING_Y = 5
+        TEXT_COLOR = (255, 255, 255) # Blanc pour le texte
+
+        screen.blit(font.render(text_player, True, (TEXT_COLOR)), (input_box_player.x+ PADDING_X, input_box_player.y+ PADDING_Y))
+        screen.blit(font.render(text_ai, True, (TEXT_COLOR)), (input_box_ai.x+ PADDING_X, input_box_ai.y+PADDING_Y))
 
         pygame.display.flip()
         clock.tick(30)
