@@ -53,6 +53,7 @@ TOTAL_OCCUPIED_WIDTH = (GRID_WIDTH_TOTAL * 2) + GAP_SIZE # (850 pixels) largeur 
 MARGIN_X = (SCREEN_WIDTH - TOTAL_OCCUPIED_WIDTH) // 2 # (25 pixels) marge gauche/droite pour centrer les grilles
 
 # --- Coordonnées des grilles ---
-GRID_OFFSET_Y = 160 # Position Y commune des grilles
+GRID_OFFSET_Y = 105 # Position Y commune des grilles
 GRID_OFFSET_X_PLAYER = MARGIN_X # Position X de la grille du joueur (25)
 GRID_OFFSET_X_ENEMY = MARGIN_X + GRID_WIDTH_TOTAL + GAP_SIZE # Position X de la grille de l'ennemi (475)
+
