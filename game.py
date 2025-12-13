@@ -1,15 +1,15 @@
 import pygame
 import random
 from player import Player, ALL_CARDS
-from settings import CARDS_ENABLED
+from settings import CARDS_ENABLED,COLOR_TEXT_MAGIC,FONT_NAME,COLOR_UI_BACKGROUND
 from ai_llm import get_ai_move
 from ai_personalities import AI_PERSONALITIES, get_ai_phrase
-
-CELL_SIZE = 40
-GRID_SIZE = 10
-GRID_OFFSET_X_PLAYER = 50
-GRID_OFFSET_X_ENEMY = 500
-GRID_OFFSET_Y = 100
+from settings import (
+    COLOR_OCEAN_DARK, COLOR_TEXT_MAGIC, COLOR_WATER_LIT, 
+    COLOR_HIT, COLOR_SHIP, 
+    CELL_SIZE, GRID_SIZE,
+    GRID_OFFSET_X_PLAYER, GRID_OFFSET_X_ENEMY, GRID_OFFSET_Y
+)
 
 PROJECTILE_SPEED = 15  # vitesse de la boule pour animation tir
 
@@ -20,8 +20,8 @@ class Game:
         self.enemy = Player("IA")
         self.turn_count = 1
         self.winner = None
-        self.font = pygame.font.SysFont("Arial", 25)
-        self.title_font = pygame.font.SysFont("Arial", 30)
+        self.font = pygame.font.Font(FONT_NAME, 25)
+        self.title_font = pygame.font.Font(FONT_NAME, 30)
         self.selected_card = None
         self.awaiting_target = False
 
@@ -59,8 +59,8 @@ class Game:
         if card_name == "50:50":
             chance = random.random()
             target = enemy if chance < 0.5 else player
-            if target.grid[target_row][target_col] == 1:
-                target.grid[target_row][target_col] = -1
+            if target.board[target_row][target_col] == 1:
+                target.board[target_row][target_col] = -1
                 self.ship_positions_hit(target, target_row, target_col)
                 if target == enemy:
                     player.hits += 1
@@ -77,8 +77,8 @@ class Game:
                 for ship, positions in player.ship_positions.items():
                     if positions:
                         r, c = positions[0]
-                        if player.grid[r][c] == 1:
-                            player.grid[r][c] = -1
+                        if player.board[r][c] == 1:
+                            player.board[r][c] = -1
                             self.ship_positions_hit(player, r, c)
                         break
 
@@ -101,7 +101,7 @@ class Game:
         if not (0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE):
             return "Invalid"
 
-        val = target.grid[row][col]
+        val = target.board[row][col]
 
         # Init animation projectile
         start_x = GRID_OFFSET_X_PLAYER + CELL_SIZE*5 if shooter == self.player else GRID_OFFSET_X_ENEMY + CELL_SIZE*5
@@ -115,14 +115,14 @@ class Game:
                     target.reinforced_ships.remove(ship)
                     return "Renforcé"
 
-            target.grid[row][col] = -1
+            target.board[row][col] = -1
             self.ship_positions_hit(target, row, col)
             shooter.hits += 1
             self.check_victory()
             return "Touché"
 
         elif val == 0:
-            target.grid[row][col] = -2
+            target.board[row][col] = -2
             return "Manqué"
 
         return "Déjà tiré"
@@ -137,9 +137,9 @@ class Game:
         if self.winner:
             return
         personality_style = AI_PERSONALITIES[self.ai_personality]["style"]
-        row, col = get_ai_move(self.player.grid, personality_style)
+        row, col = get_ai_move(self.player.board, personality_style)
         if not (0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE):
-            available = [(r, c) for r in range(GRID_SIZE) for c in range(GRID_SIZE) if self.player.grid[r][c] in [0, 1]]
+            available = [(r, c) for r in range(GRID_SIZE) for c in range(GRID_SIZE) if self.player.board[r][c] in [0, 1]]
             if not available:
                 return
             row, col = random.choice(available)
@@ -228,17 +228,18 @@ class Game:
         for row in range(GRID_SIZE):
             for col in range(GRID_SIZE):
                 rect = pygame.Rect(offset_x + col*CELL_SIZE, GRID_OFFSET_Y + row*CELL_SIZE, CELL_SIZE, CELL_SIZE)
-                val = player.grid[row][col]
+                val = player.board[row][col]
                 if val == 0:
-                    color = (0,105,148)
+                    color = COLOR_OCEAN_DARK
                 elif val == 1:
-                    color = (105,105,105) if show_ships else (0,105,148)
+                    color = COLOR_SHIP if show_ships else COLOR_OCEAN_DARK
                 elif val == -1:
-                    color = (255,0,0)
+                    color = COLOR_HIT
                 elif val == -2:
-                    color = (0,105,148)  # pas de changement couleur
+                    color = COLOR_OCEAN_DARK
                 else:
-                    color = (0,105,148)
+                    color = COLOR_OCEAN_DARK
+
                 pygame.draw.rect(self.screen, color, rect)
                 pygame.draw.rect(self.screen, (0,0,0), rect, 1)
 
@@ -250,6 +251,32 @@ class Game:
                     start2 = (rect.left + 5, rect.bottom - 5)
                     end2 = (rect.right - 5, rect.top + 5)
                     pygame.draw.line(self.screen, (0,0,0), start2, end2, 2)
+
+    # ------------------ DESSIN DES COORDONNÉES (A-J et 1-10) ------------------
+
+        for row in range(GRID_SIZE):
+            # Calculer la position au milieu à gauche de la ligne
+            y_pos = GRID_OFFSET_Y + row * CELL_SIZE + CELL_SIZE // 2
+            
+            # Le texte est '1', '2', ..., '10'
+            text_surf = self.font.render(str(row + 1), True, COLOR_TEXT_MAGIC)
+            
+            # Positionnement : 10 pixels à gauche de la grille
+            text_rect = text_surf.get_rect(center=(offset_x - 10, y_pos))
+            self.screen.blit(text_surf, text_rect)
+
+        # 2. Étiquettes Alphabetiques (A à J) - Horizontales
+        for col in range(GRID_SIZE):
+            # Calculer la position au milieu au-dessus de la colonne
+            x_pos = offset_x + col * CELL_SIZE + CELL_SIZE // 2
+            
+            # Le texte est 'A', 'B', ..., 'J'
+            letter = chr(ord('A') + col)
+            text_surf = self.font.render(letter, True, COLOR_TEXT_MAGIC)
+            
+            # Positionnement : 10 pixels au-dessus de la grille
+            text_rect = text_surf.get_rect(center=(x_pos, GRID_OFFSET_Y - 10))
+            self.screen.blit(text_surf, text_rect)
 
     def draw_cards(self, player):
         if not CARDS_ENABLED:
@@ -265,7 +292,7 @@ class Game:
             x += 130
 
     def draw(self):
-        self.screen.fill((0,105,148))
+        self.screen.fill(COLOR_UI_BACKGROUND)
         self.draw_grid(self.player, GRID_OFFSET_X_PLAYER, show_ships=True)
         self.draw_grid(self.enemy, GRID_OFFSET_X_ENEMY, show_ships=False)
         self.draw_cards(self.player)
@@ -293,6 +320,7 @@ class Game:
         if self.winner:
             msg = self.title_font.render(f"{self.winner.name} a gagné !", True, (255,255,0))
             self.screen.blit(msg, (200, 100))
+
 
 
 
