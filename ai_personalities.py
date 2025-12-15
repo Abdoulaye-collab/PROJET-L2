@@ -4,13 +4,13 @@ AI_PERSONALITIES = {
     "Gentille": {
         "style": "Tu es une IA gentille, polie et amicale.",
         "hit": [
-            "Oh ! J’ai touché quelque chose… désolé 😅",
+            "Oh ! J’ai touché quelque chose… désolé ",
             "Pardon… mais j’ai réussi un tir.",
             "Minou ! Je crois que j’ai fait mouche !"
         ],
         "miss": [
             "Oups, rien du tout ici…",
-            "Raté ! Tant pis… 😊",
+            "Raté ! Tant pis… ",
             "Ah ! J’ai tiré, mais sans succès…"
         ],
     },

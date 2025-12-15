@@ -23,29 +23,48 @@ COLOR_PREVIEW_INVALID = (255,50,50)  # Placement invalide (Rouge vif)
 # ==================================================================================
 #                           TYPOGRAPHIE
 # ==================================================================================
-FONT_NAME = 'CormorantUnicase-Regular.ttf'
+FONT_NAME = 'Sekuya-Regular.ttf'
+FONT_NAME_2 = 'CormorantUnicase-Regular.ttf'
 
 # ==================================================================================
 #                        DIMENSIONS DE L'ÉCRAN
 # ==================================================================================
 
-SCREEN_WIDTH, SCREEN_HEIGHT = 900, 600
-# ==================================================================================
-#             PARAMÈTRES D'INTERFACE UTILISATEUR (MENU ET BOUTONS)
-# ==================================================================================
-BUTTON_WIDTH = 200 
-BUTTON_HEIGHT = 50 
-# Calcul de la position X pour centrer les boutons (en utilisant SCREEN_WIDTH)
-BUTTON_CENTER_X = (SCREEN_WIDTH // 2) - (BUTTON_WIDTH // 2)
+SCREEN_WIDTH, SCREEN_HEIGHT = 1400,800 
 
 # ==================================================================================
 #                 PARAMÈTRES DES GRILLES DE JEU
 # ==================================================================================
 
 # --- DIMENSIONS DE BASE ---
-CELL_SIZE = 40  # Taille d'une cellule en pixels
+CELL_SIZE = 35  # Taille d'une cellule en pixels
 GRID_SIZE = 10  # Nombre lignes/colonnes par grille (10x10)
 GRID_WIDTH_TOTAL = GRID_SIZE * CELL_SIZE # Largeur totale de la grille (400 pixels)
+
+# --- Calcul du Centrage dans la Moitié Gauche (Pour la phase Placement) ---
+
+# 1. Centre de la Moitié Gauche
+CENTER_HALF_X = SCREEN_WIDTH // 4  # (Largeur de l'écran / 2) / 2
+
+# 2. Position X de départ de la grille du Joueur
+# On retire la moitié de la largeur totale de la grille pour centrer.
+GRID_OFFSET_X_PLAYER = CENTER_HALF_X - (GRID_WIDTH_TOTAL // 2)
+
+# 3. Position Y de départ (pour le centrage vertical)
+# On centre la grille verticalement par rapport à l'écran (en laissant de l'espace pour le titre)
+GRID_OFFSET_Y = (SCREEN_HEIGHT // 2) - (GRID_WIDTH_TOTAL // 2) + 50 
+# (+50 pour descendre un peu et laisser de l'espace pour le titre en haut)
+
+# ==================================================================================
+#             PARAMÈTRES D'INTERFACE UTILISATEUR (MENU ET BOUTONS)
+# ==================================================================================
+BUTTON_WIDTH = 300 
+BUTTON_HEIGHT = 60
+BUTTONS_START_Y = 300
+
+# Calcul de la position X pour centrer les boutons (en utilisant SCREEN_WIDTH)
+BUTTON_CENTER_X = (SCREEN_WIDTH // 2) - (BUTTON_WIDTH // 2)
+
 
 # --- OFFSETS DE ET ALIGNEMENT ---
 GAP_SIZE = 50 # Espace entre les deux grilles (game.py)
@@ -56,4 +75,3 @@ MARGIN_X = (SCREEN_WIDTH - TOTAL_OCCUPIED_WIDTH) // 2 # (25 pixels) marge gauche
 GRID_OFFSET_Y = 105 # Position Y commune des grilles
 GRID_OFFSET_X_PLAYER = MARGIN_X # Position X de la grille du joueur (25)
 GRID_OFFSET_X_ENEMY = MARGIN_X + GRID_WIDTH_TOTAL + GAP_SIZE # Position X de la grille de l'ennemi (475)
-
