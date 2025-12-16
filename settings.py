@@ -15,17 +15,19 @@ COLOR_OCEAN_DARK = (10, 25, 75)       # Eau de la Grille (Bleu Nuit/Saphir)
 COLOR_SHIP = (120, 120, 120)             # Couleur des bateaux (Gris Moyen)
 COLOR_WATER_LIT = (0, 150, 255)        # Eau touchée (Bleu Lumineux)
 COLOR_HIT = (255, 0, 0)             # Bateau touché (Rouge Vif)
-
+COLOR_MAGIC_PLAYER = (0, 180, 210) # Bateau magique
+COLOR_MAGIC_ENEMY = (160, 32, 240)
 # --- COULEURS DE PRÉVISUALISATION (PLACEMENT) ---
-COLOR_PREVIEW_VALID = (180,100,255) # Placement valide (Violet Clair)
+COLOR_PREVIEW_VALID = (200,255,255) # Placement valide (Violet Clair)
 COLOR_PREVIEW_INVALID = (255,50,50)  # Placement invalide (Rouge vif)
 
 # ==================================================================================
 #                           TYPOGRAPHIE
 # ==================================================================================
-FONT_NAME = 'Sekuya-Regular.ttf'
-FONT_NAME_2 = 'CormorantUnicase-Regular.ttf'
-
+FONT_NAME = 'fonts/Sekuya-Regular.ttf'
+FONT_NAME_2 = 'fonts/DancingScript-Regular.ttf'
+FONT_NAME_GRIMOIRE = 'fonts/MagicSchoolOne.ttf'
+FONT_NAME_GRIMOIRE2 = 'fonts/MagicSchoolOne.ttf'
 # ==================================================================================
 #                        DIMENSIONS DE L'ÉCRAN
 # ==================================================================================

@@ -1,5 +1,7 @@
 import pygame
 import sys
+import math
+import random
 from settings import FONT_NAME,COLOR_OCEAN_DARK, COLOR_TEXT_MAGIC, COLOR_UI_BACKGROUND,SCREEN_WIDTH,SCREEN_HEIGHT
 
 
@@ -55,6 +57,8 @@ def input_names(screen):
     LINE_THICKNESS = 3
     DASH_LENGTH = 8 
     TEXT_COLOR = (50,30,10)
+    background_menu = pygame.image.load('images/fond_bateau.png').convert()
+    background_menu = pygame.transform.smoothscale(background_menu, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
    # --- INITIALISATION DES POLICES ET HORLOGE ---
     welcome_font = pygame.font.Font(FONT_NAME, 50) 
@@ -96,6 +100,7 @@ def input_names(screen):
     # --- CURSEUR CLIGNOTANT ---
     cursor_visible = True
     cursor_timer = pygame.time.get_ticks()
+    particles = []
     CURSOR_BLINK_RATE = 500 # Clignote toutes les 500 millisecondes (0.5s)
 
     # Ajuster la position X des boîtes pour les centrer
@@ -165,7 +170,7 @@ def input_names(screen):
         # ----------------------------------------------------------------------
         # c. LOGIQUE D'AFFICHAGE ET DESSIN
         # ----------------------------------------------------------------------
-        screen.fill(COLOR_OCEAN_DARK)
+        screen.blit(background_menu,(0,0))
 
         Y_TITRE = 100
 
@@ -280,47 +285,79 @@ def input_names(screen):
 
         
 
-        # --- 4. Curseur de Saisie ---
-        if cursor_visible:
+        
+       # --- 4. Curseur de Saisie (MAGIQUE ET PULSANT) ---
+        
+        # On détermine quelle boîte est active pour savoir où dessiner et quel texte mesurer
+        target_box = None
+        current_text = ""
+        
+        if active_ai:
+            target_box = input_box_ai
+            current_text = text_ai
+            ORB_COLOR = (160, 32, 240)
+        elif active_player:
+            target_box = input_box_player
+            current_text = text_player
+            ORB_COLOR = (0, 255, 255)
             
-            if active_ai:
-                current_text = text_ai
-                input_box = input_box_ai
-            elif active_player:
-                current_text = text_player
-                input_box = input_box_player
-            else:
-                input_box = None
-                
-            if input_box:
-                # Calculer où le curseur doit être dessiné (à la fin du texte)
-                
-                # 1. Rendre le texte pour obtenir sa taille exacte
-                text_surf = font.render(current_text, True, TEXT_COLOR)
-                text_width = text_surf.get_width()
-                
-                # 2. Calculer la position X du curseur
-                # On se base sur le centre de la boîte, puis on soustrait la moitié de la largeur du texte
-                # pour trouver le point de départ du texte, puis on ajoute toute la largeur du texte.
-                
-                center_x_box = input_box.centerx
-                
-                cursor_x = center_x_box + (text_width//2)
-                
-                # 3. Position Y (au centre vertical de la boîte)
-                CURSOR_HEIGHT = font.get_height()
-                cursor_y_center = input_box.centery
-                # Dessin du trait vertical
-                pygame.draw.line(
-                    screen, 
-                    TEXT_COLOR, 
-                    (cursor_x, cursor_y_center - CURSOR_HEIGHT // 2), 
-                    (cursor_x, cursor_y_center + CURSOR_HEIGHT // 2), 
-                    2
-                )
-                    #Épaisseur du curseur
-                
-    #Mise à jour de l'affichage
+        # Si une boîte est active, on dessine le curseur magique
+        if target_box:
+            # 1. Calcul de la position X
+            # Comme ton texte est centré, le curseur doit être à : centre_boite + (moitié_largeur_texte) + petite_marge
+            text_surf = font.render(current_text, True, TEXT_COLOR)
+            text_width = text_surf.get_width()
+            
+            cursor_x = target_box.centerx + (text_width // 2) + 2
+            cursor_y = target_box.centery
+
+            # --- A. CRÉATION DES PARTICULES (SPAWN) ---
+            # On ajoute 2 particules par image pour faire une belle trainée
+            for _ in range(2):
+                particles.append({
+                    'x': cursor_x + random.uniform(-3, 3),   # Légère variation X
+                    'y': cursor_y + random.uniform(-3, 3),   # Légère variation Y
+                    'dx': random.uniform(-1, 1),             # Vitesse horizontale
+                    'dy': random.uniform(-2, -0.5),          # Vitesse verticale (monte vers le haut)
+                    'size': random.randint(2, 5),            # Taille aléatoire
+                    'life': random.randint(20, 40),          # Durée de vie
+                    'color': ORB_COLOR                       # Couleur de l'orbe actuel
+                })
+            
+            # --- B. DESSIN DE L'ORBE (Pulsation) ---
+         
+            current_time = pygame.time.get_ticks()
+            alpha = int(abs(math.sin(current_time / 300)) * 200) + 55
+            radius = 8
+
+            orb_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+            pygame.draw.circle(orb_surface, ORB_COLOR + (alpha,), (radius, radius), radius)
+            pygame.draw.circle(orb_surface, (255, 255, 255), (radius, radius), radius - 3)
+            screen.blit(orb_surface, (cursor_x - radius, cursor_y - radius))
+
+        # --- C. GESTION ET AFFICHAGE DES PARTICULES ---
+        # On parcourt la liste à l'envers pour pouvoir supprimer des éléments sans bug
+        for p in particles[:]:
+            p['x'] += p['dx']
+            p['y'] += p['dy']
+            p['size'] -= 0.1  # Rétrécit doucement
+            p['life'] -= 1    # Vieillit
+            
+            # Si la particule est morte ou trop petite, on l'enlève
+            if p['life'] <= 0 or p['size'] <= 0:
+                particles.remove(p)
+                continue
+            
+            # Calcul de la transparence (fade out)
+            # Plus la vie est basse, plus c'est transparent
+            alpha_p = int((p['life'] / 40) * 255)
+            if alpha_p < 0: alpha_p = 0
+            
+            # Dessin de la particule
+            s_part = pygame.Surface((int(p['size']*2), int(p['size']*2)), pygame.SRCALPHA)
+            # On dessine un cercle rempli avec la couleur et l'alpha
+            pygame.draw.circle(s_part, p['color'] + (alpha_p,), (int(p['size']), int(p['size'])), int(p['size']))
+            screen.blit(s_part, (p['x'] - p['size'], p['y'] - p['size']))
         pygame.display.flip()
         clock.tick(30)
     # ----------------------------------------------------------------------

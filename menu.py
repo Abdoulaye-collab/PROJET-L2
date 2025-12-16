@@ -43,10 +43,6 @@ class Menu:
         self.font = pygame.font.Font(FONT_NAME, 40)
         self.title_font = pygame.font.Font(FONT_NAME, 60)
         self.subtitle_font = pygame.font.Font(FONT_NAME, 20)
-        
-        bateau_img = pygame.image.load('images/bateau.png').convert_alpha()
-        self.bateau_image = pygame.transform.scale(bateau_img, (self.DECO_WIDTH, self.DECO_HEIGHT))
-        self.bateau_loaded = True
 
         sorcier_img = pygame.image.load('images/sorcier.png').convert_alpha() 
         self.sorcier_image = pygame.transform.scale(sorcier_img, (self.DECO_WIDTH, self.DECO_HEIGHT))
