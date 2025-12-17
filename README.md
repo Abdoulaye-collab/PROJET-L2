@@ -71,7 +71,7 @@ cd PROJET-L2
 
 3. Lancer le jeu: python main.py
 
-# Pistes d'Amélioration 
+## Pistes d'Amélioration 
 Si le temps le permettait, voici les fonctionnalités qu'on aimerait ajouter : 
 *
 *
