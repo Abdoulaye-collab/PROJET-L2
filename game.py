@@ -5,6 +5,7 @@ from settings import CARDS_ENABLED, FONT_NAME_2,COLOR_TEXT_MAGIC,FONT_NAME_GRIMO
 from ai_llm import get_ai_move
 from ai_personalities import AI_PERSONALITIES, get_ai_phrase
 from cards import apply_card_effect, CARD_HEIGHT, CARD_SPACING, CARD_WIDTH
+from GameOver import GameOver
 from settings import (
     COLOR_OCEAN_DARK, COLOR_TEXT_MAGIC, COLOR_WATER_LIT, 
     COLOR_HIT, COLOR_SHIP, 
@@ -37,7 +38,7 @@ START_Y_IA = 150
 
 GRID_SIZE = 10
 GRID_OFFSET_Y = 200
-PROJECTILE_SPEED = 20  
+PROJECTILE_SPEED = 80
 
 def load_assets(cell_size):
     """Charge les ressources nécessaires"""
@@ -53,8 +54,10 @@ class Game:
         self.enemy = Player("IA")
         self.turn_count = 1
         self.winner = None
+        self.game_over= False
+        self.game_over_screen = None
         self.font = pygame.font.Font(FONT_NAME_GRIMOIRE, 50)
-        self.title_font = pygame.font.Font(FONT_NAME_GRIMOIRE, 45)
+        self.title_font = pygame.font.Font(FONT_NAME_GRIMOIRE, 55)
         self.background_image = pygame.image.load("images/fond_marin.png").convert()
         # 2. Redimensionner l'image à la taille exacte de ta fenêtre
         self.background_image = pygame.transform.scale(self.background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -176,26 +179,58 @@ class Game:
         return True
 
     def check_win(self):
-        # Vérif si IA perd
+        # --- SÉCURITÉ ABSOLUE ---
+        # Si la partie est déjà finie, ON ARRÊTE TOUT DE SUITE.
+        # Cela empêche le bug du "double affichage" ou du changement de nom.
+        if self.game_over: 
+            return 
+        # ------------------------
+
+        # 1. EST-CE QUE LE JOUEUR A GAGNÉ ? (L'IA n'a plus de bateaux)
         all_sunk_enemy = True
-        for ship_name in self.enemy.ship_positions :
-            if not self.is_ship_sunk(self.enemy,ship_name):
+        for ship_name in self.enemy.ship_positions:
+            if not self.is_ship_sunk(self.enemy, ship_name):
                 all_sunk_enemy = False
                 break 
+        
         if all_sunk_enemy:
+            print("VICTOIRE VALIDÉE : JOUEUR GAGNE") # Debug
             self.winner = self.player
-            self.game_over = True
+            self.game_over = True # On verrouille la partie
+            
+            duration = (pygame.time.get_ticks() - self.start_time) // 1000
+            
+            # ORDRE : (Ecran, GAGNANT, PERDANT, Temps)
+            self.game_over_screen = GameOver(
+                self.screen, 
+                self.player,  # Gagnant = Objet Joueur
+                self.enemy,   # Perdant = Objet IA
+                duration
+            )
+            return
 
-        # Vérif si Joueur perd
-
+        # 2. EST-CE QUE L'IA A GAGNÉ ? (Le Joueur n'a plus de bateaux)
         all_sunk_player = True
         for ship_name in self.player.ship_positions:
             if not self.is_ship_sunk(self.player, ship_name):
                 all_sunk_player = False
                 break
+        
         if all_sunk_player:
+            print("VICTOIRE VALIDÉE : IA GAGNE") # Debug
             self.winner = self.enemy
-            self.game_over = True
+            self.game_over = True # On verrouille la partie
+            
+            duration = (pygame.time.get_ticks() - self.start_time) // 1000
+            
+            # ORDRE : (Ecran, GAGNANT, PERDANT, Temps)
+            self.game_over_screen = GameOver(
+                self.screen, 
+                self.enemy,   # Gagnant = Objet IA
+                self.player,  # Perdant = Objet Joueur
+                duration
+            )
+            return
 
     def ai_play(self):
         if self.winner: return
@@ -219,6 +254,14 @@ class Game:
         self.text_status = f"Tour de {self.player.name} !"
 
     def handle_event(self, event):
+        
+        if self.game_over and self.game_over_screen:
+            self.game_over_screen.handle_event(event)
+
+            if self.game_over_screen.done:
+                self.winner = "MENU" 
+            return
+
         if event.type != pygame.MOUSEBUTTONDOWN or self.winner:
             return
         mouse_x, mouse_y = event.pos
@@ -529,11 +572,11 @@ class Game:
         self.screen.blit(status_surf, status_surf.get_rect(midtop=(self.screen.get_width() // 2, 20)))
 
         # Noms
-        name_player = self.title_font.render(self.player.name, True, (255,255,255))
-        self.screen.blit(name_player, name_player.get_rect(midbottom=(START_X_PLAYER + (GRID_SIZE*CELL_SIZE_PLAYER)//2, START_Y_PLAYER - 20)))
+        name_player = self.title_font.render(self.player.name, True, COLOR_TEXT_NORMAL)
+        self.screen.blit(name_player, name_player.get_rect(midbottom=(START_X_PLAYER + (GRID_SIZE*CELL_SIZE_PLAYER)//2, START_Y_PLAYER - 30)))
         
         name_enemy = self.title_font.render(self.enemy.name, True, (255,255,255))
-        self.screen.blit(name_enemy, name_enemy.get_rect(midbottom=(START_X_IA + (GRID_SIZE*CELL_SIZE_IA)//2, START_Y_IA - 20)))
+        self.screen.blit(name_enemy, name_enemy.get_rect(midbottom=(START_X_IA + (GRID_SIZE*CELL_SIZE_IA)//2, START_Y_IA - 35)))
 
         # Chrono
         current_time = pygame.time.get_ticks() - self.start_time
@@ -582,16 +625,31 @@ class Game:
         self.update_and_draw_particles()
 
         # Victoire
-        if self.winner:
-            nom_gagnant = self.winner.name if hasattr(self.winner, "name") else str(self.winner)
-            msg = self.title_font.render(f"{nom_gagnant} a gagné !", True, (255,255,0))
-            if pygame.mixer.get_init(): pygame.mixer.music.stop()
-            msg_rect = msg.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2))
-            # Fond sombre pour le message
+        # --------------------------------------------------------------
+        #  BLOC VICTOIRE (CORRIGÉ)
+        # --------------------------------------------------------------
+        # Cas 1 : L'écran de fin a été créé correctement dans check_win
+        if self.game_over and self.game_over_screen:
+            self.game_over_screen.draw()
+            
+        # Cas 2 : Un gagnant est défini, mais l'écran n'est pas prêt (Sécurité)
+        elif self.winner: 
+            # On affiche juste un texte simple pour éviter le bug
+            # NE CRÉE SURTOUT PAS DE 'GameOver(...)' ICI !!!
+            nom = self.winner.name if hasattr(self.winner, "name") else str(self.winner)
+            msg = self.title_font.render(f"{nom} a gagné !", True, (255, 255, 0))
+            
+            # Fond noir semi-transparent
             s_win = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
-            s_win.fill((0,0,0,180))
-            self.screen.blit(s_win, (0,0))
-            self.screen.blit(msg, msg_rect)
+            s_win.fill((0, 0, 0, 180))
+            self.screen.blit(s_win, (0, 0))
+            
+            # Message centré
+            rect = msg.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2))
+            self.screen.blit(msg, rect)
+            
+            
+            
 
     # ----------------------------------------------------------------------
     #  GESTION DES PARTICULES D'IMPACT (MAGIE CYAN)

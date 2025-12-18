@@ -3,10 +3,26 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_UI_BACKGROUND, COLOR_TEX
 
 class GameOver:
     def __init__(self, screen, winner_name, loser_name, game_time_seconds):
+        print("--- DEBUG GAMEOVER INIT ---")
+        print(f"Reçu Winner: {winner_name}")
+        print(f"Reçu Loser: {loser_name}")
+        # ----------------
         self.screen = screen
-        self.winner_name = winner_name
-        self.loser_name = loser_name
         self.game_time_seconds = game_time_seconds
+        if hasattr(winner_name, 'name'):
+            self.winner_name = winner_name.name
+        else:
+            self.winner_name = str(winner_name)
+
+        if hasattr(loser_name, 'name'):
+            self.loser_name = loser_name.name
+        else:
+            self.loser_name = str(loser_name)
+        
+        print(f"FINAL self.winner_name = {self.winner_name}")
+        print(f"FINAL self.loser_name = {self.loser_name}")
+        print("---------------------------")
+        # ----------------
         
         # --- POLICES ---
         self.title_font = pygame.font.Font(FONT_NAME, 70)
