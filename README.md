@@ -69,7 +69,26 @@ cd PROJET-L2
 
 2. Installer les dépendances:
 
-3. Lancer le jeu: python main.py
+## 📋 Prérequis au bon fonctionnement
+
+Pour lancer le jeu correctement, votre environnement doit impérativement contenir :
+
+* **PYTHON version 3.11** : Version recommandée pour la compatibilité des bibliothèques.
+* **PYGAME** : Le moteur graphique pour l'interface et les sons.
+* **Bibliothèque Hugging Face** : Pour permettre la communication avec l'IA.
+* **Clé API Hugging Face** : Un token d'accès pour activer les capacités de réflexion de l'IA.
+
+---
+
+## 🛠️ Instructions d'Installation
+
+### 1. Installation des bibliothèques (Dépendances)
+Ouvrez votre terminal et exécutez la commande suivante pour installer tout le nécessaire :
+
+
+pip install pygame huggingface_hub
+
+4. Lancer le jeu: python main.py
 
 ## Pistes d'Amélioration 
 Si le temps le permettait, voici les fonctionnalités qu'on aimerait ajouter : 
