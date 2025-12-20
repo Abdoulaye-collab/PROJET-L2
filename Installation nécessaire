@@ -1,5 +1,5 @@
 Necessaire au bon fonctionnment du jeu WIZARDS BATTLESHIP : 
 
--PYTHON version recente 
+-PYTHON version 3.11
 -PYGAME 
 -Bibliotheque Hugging face pour pouvoir utilse la cle API 
