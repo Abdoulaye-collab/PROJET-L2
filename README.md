@@ -80,9 +80,18 @@ Pour lancer le jeu correctement, votre environnement doit impérativement conten
 
 ---
 
+### 🎮 Installation de Pygame
+
+Pygame est indispensable pour gérer l'affichage graphique, les sons et les interactions avec la souris. Voici comment l'installer selon votre système :
+
+#### 1. Commande d'installation classique
+Dans la plupart des cas, cette commande dans votre terminal suffit :
+bash
+pip install pygame
+
 ## 🛠️ Instructions d'Installation
 
-### 1. Installation des bibliothèques (Dépendances)
+### Installation des bibliothèques (Dépendances)
 Ouvrez votre terminal et exécutez la commande suivante pour installer tout le nécessaire :
 
 
@@ -92,9 +101,9 @@ pip install pygame huggingface_hub
 
 ## Pistes d'Amélioration 
 Si le temps le permettait, voici les fonctionnalités qu'on aimerait ajouter : 
-*
-*
-*
+* Un mode jouer contre jouer
+* Un mode mort subite ou les deux joeurs n'ont qu' un seul bateau
+* Un mode avec des cartes 50/50 qui permettrait d'avoir une chance sur deux d'etre benefique ou negatif pour les joueurs 
 
 ## Crédits
 Sons du jeu : https://freesound.org/
