@@ -78,6 +78,7 @@ Si le temps le permettait, voici les fonctionnalités qu'on aimerait ajouter :
 *
 
 ## Crédits
+Sons du jeu : https://freesound.org/
 ## L'Équipe de Développement
 
 Ce projet a été réalisé en collaboration par :
