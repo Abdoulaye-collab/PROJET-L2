@@ -72,6 +72,7 @@ class Game:
         self.ia_pending = False
         self.player_turn = True
         self.text_status = f"Tour de {self.player.name} !"
+        self.cards_played_total = 0
         
         # Audio
         pygame.mixer.init()
@@ -205,7 +206,8 @@ class Game:
                 self.screen, 
                 self.player,  # Gagnant = Objet Joueur
                 self.enemy,   # Perdant = Objet IA
-                duration
+                duration,
+                self.cards_played_total
             )
             return
 
@@ -228,7 +230,8 @@ class Game:
                 self.screen, 
                 self.enemy,   # Gagnant = Objet IA
                 self.player,  # Perdant = Objet Joueur
-                duration
+                duration,
+                self.cards_played_total
             )
             return
 
@@ -254,65 +257,88 @@ class Game:
         self.text_status = f"Tour de {self.player.name} !"
 
     def handle_event(self, event):
-        
+        # 1. GESTION DE L'ÉCRAN DE FIN
         if self.game_over and self.game_over_screen:
             self.game_over_screen.handle_event(event)
-
             if self.game_over_screen.done:
                 self.winner = "MENU" 
             return
 
-        if event.type != pygame.MOUSEBUTTONDOWN or self.winner:
-            return
-        mouse_x, mouse_y = event.pos
+        # 2. GESTION CLIC SOURIS (Jeu en cours)
+        if event.type == pygame.MOUSEBUTTONDOWN and not self.winner:
+            mouse_x, mouse_y = event.pos
 
-        # 1. Gestion des cartes
-        card_x = START_X_PLAYER
-        card_y = START_Y_PLAYER + (GRID_SIZE * CELL_SIZE_PLAYER) + 30
-        for card in self.player.cards:
-            rect = pygame.Rect(card_x, card_y, 120, 40)
-            if rect.collidepoint(mouse_x, mouse_y):
-                if CARDS_ENABLED:
-                    if self.selected_card == card:
-                        self.selected_card = None
-                        self.awaiting_target = False
-                    else:
-                        self.selected_card = card 
-                        self.awaiting_target = True
-                        if hasattr(self, 'sound_card'): self.sound_card.play()
-                return 
-            card_x += CARD_WIDTH + CARD_SPACING
-        
-        # 2. Gestion Clic Grille IA
-        width_ia = GRID_SIZE * CELL_SIZE_IA
-        height_ia = GRID_SIZE * CELL_SIZE_IA
-        is_inside_ia_grid = (START_X_IA <= mouse_x < START_X_IA + width_ia and START_Y_IA <= mouse_y < START_Y_IA + height_ia)
-        
-        if is_inside_ia_grid:
-            col = (mouse_x - START_X_IA) // CELL_SIZE_IA
-            row = (mouse_y - START_Y_IA) // CELL_SIZE_IA
+            # --- A. CLIC SUR UNE CARTE (Main du joueur) ---
+            card_x = START_X_PLAYER
+            card_y = START_Y_PLAYER + (GRID_SIZE * CELL_SIZE_PLAYER) + 30
+            
+            for card in self.player.cards:
+                rect = pygame.Rect(card_x, card_y, 120, 40)
+                if rect.collidepoint(mouse_x, mouse_y):
+                    if CARDS_ENABLED:
+                        if self.selected_card == card:
+                            # Désélectionner si on reclique dessus
+                            self.selected_card = None
+                            self.awaiting_target = False
+                            self.text_status = "Carte désélectionnée."
+                            print("Carte désélectionnée")
+                        else:
+                            # Sélectionner la carte
+                            self.selected_card = card 
+                            self.awaiting_target = True
+                            self.text_status = f"Carte {card} activée ! Ciblez la grille IA."
+                            print(f"Carte sélectionnée : {card}")
+                            if hasattr(self, 'sound_card'): self.sound_card.play()
+                    return # On arrête ici pour ne pas cliquer ailleurs
+                
+                card_x += CARD_WIDTH + CARD_SPACING
 
-            # Carte
-            if self.selected_card and self.awaiting_target:
-                apply_card_effect(self, self.selected_card, row, col)
-                if self.selected_card in self.player.cards:
-                    self.player.cards.remove(self.selected_card)
-                self.selected_card = None
-                self.awaiting_target = False
-                return
+            # --- B. CLIC SUR LA GRILLE ENNEMIE ---
+            width_ia = GRID_SIZE * CELL_SIZE_IA
+            height_ia = GRID_SIZE * CELL_SIZE_IA
+            
+            is_inside_ia_grid = (START_X_IA <= mouse_x < START_X_IA + width_ia and 
+                                 START_Y_IA <= mouse_y < START_Y_IA + height_ia)
+            
+            if is_inside_ia_grid:
+                col = (mouse_x - START_X_IA) // CELL_SIZE_IA
+                row = (mouse_y - START_Y_IA) // CELL_SIZE_IA
+                
+                print(f"Clic Grille IA : Case {row},{col}") # DEBUG
 
-            # Tir normal
-            if self.player_turn:
-                res = self.shoot(self.player, row, col)
-                if res != "Déjà tiré":
-                    if self.extra_shot > 0:
-                        self.extra_shot -= 1
-                    else:
-                        self.player_turn = False
-                        self.text_status = "Tour de l'IA..."
-                        self.ia_delay = 250
-                        self.ia_pending = True
+                # CAS 1 : UTILISATION DE CARTE
+                if self.selected_card and self.awaiting_target:
+                    print(f" -> Lancement effet carte : {self.selected_card}") # DEBUG
+                    
+                    # Appel de cards.py
+                    apply_card_effect(self, self.selected_card, row, col)
+                    
+                    self.cards_played_total += 1
+                    
+                    # Retirer la carte de la main
+                    if self.selected_card in self.player.cards:
+                        self.player.cards.remove(self.selected_card)
+                    
+                    # Reset
+                    self.selected_card = None
+                    self.awaiting_target = False
+                    return # IMPORTANT : On ne tire pas en plus
 
+                # CAS 2 : TIR NORMAL
+                if self.player_turn:
+                    res = self.shoot(self.player, row, col)
+                    
+                    if res != "Déjà tiré":
+                        # Gestion Bonus Double Tir
+                        if self.extra_shot > 0:
+                            self.extra_shot -= 1
+                            self.text_status = f"BONUS : Encore {self.extra_shot + 1} tir(s) !"
+                        else:
+                            # Fin du tour
+                            self.player_turn = False
+                            self.text_status = "Tour de l'IA..."
+                            self.ia_delay = 800
+                            self.ia_pending = True
     def update(self):
         if self.projectile:
             target_row, target_col = self.projectile["target"]
@@ -338,7 +364,6 @@ class Game:
             else:
                 self.ai_play()
                 self.ia_pending = False
-        self.check_win()
 
     # ------------------------------------------------------------------
     #  DESSIN DES FORMES CONTINUES (OVALES)

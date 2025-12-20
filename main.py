@@ -79,13 +79,31 @@ while running:
         running = False
         
     if game and game.game_over:
-        end_time = pygame.time.get_ticks()
-        total_time_seconds = (end_time - game.start_time) // 1000
+        # 1. On regarde si game.py a déjà préparé l'écran (avec les bonnes couleurs/noms)
+        if game.game_over_screen:
+            game_over_screen = game.game_over_screen
+        
+        # 2. Sinon (Sécurité), on le crée manuellement en faisant attention aux types
+        else:
+            end_time = pygame.time.get_ticks()
+            total_time_seconds = (end_time - game.start_time) // 1000
+            
+            # On compare les OBJETS, pas les noms
+            if game.winner == game.player:
+                winner_obj = game.player
+                loser_obj = game.enemy
+            else:
+                winner_obj = game.enemy
+                loser_obj = game.player
 
-        winner = game.winner
-        loser = game.enemy.name if winner == game.player.name else game.player.name
-
-        game_over_screen = GameOver(screen, winner, loser, total_time_seconds)
+            game_over_screen = GameOver(
+                screen, 
+                winner_obj, 
+                loser_obj, 
+                total_time_seconds, 
+                game.cards_played_total
+            )
+            
         game = None
         
     if game_over_screen and game_over_screen.done:
