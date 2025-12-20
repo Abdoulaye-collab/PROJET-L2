@@ -21,9 +21,9 @@ Le jeu bascule **à l'intérieur du grimoire**. Les pages s'ouvrent pour révél
 Le grimoire se referme, la magie opère. Le plateau de jeu s'anime d'énergies néons et cyan. Chaque tir est un sortilège, chaque impact une explosion de particules. Vous affrontez une IA tactique dans un déluge d'effets visuels.
 
 ## Galerie
-| L'Accueil | Le Grimoire (Placement) | Le Duel (Combat) |
-
-| *Immersion à la 1ère personne* | *Stratégie sur parchemin* | *Magie et Particules* |
+| La Cabine | Le Grimoire | Le Duel |
+| :---: | :---: | :---: |
+| <img width="200" alt="accueilV2" src="https://github.com/user-attachments/assets/b8c3e6e9-845b-4685-a41f-642161a50d89" /> | <img width="200" alt="grimoire" src="https://github.com/user-attachments/assets/3df465fa-2bef-4931-8a3f-d09b730386dd" /> | <img width="200" alt="combatV2" src="https://github.com/user-attachments/assets/ee445c9f-8ede-41f2-9418-1a91ef3f8e59" /> |
 
 ## Commandes et Contrôles
 Le jeu se joue entièrement à la souris pour une fluidité maximale.
@@ -80,7 +80,7 @@ Pour lancer le jeu correctement, votre environnement doit impérativement conten
 
 ---
 
-### 🎮 Installation de Pygame
+### Installation de Pygame
 
 Pygame est indispensable pour gérer l'affichage graphique, les sons et les interactions avec la souris. Voici comment l'installer selon votre système :
 
@@ -89,7 +89,7 @@ Dans la plupart des cas, cette commande dans votre terminal suffit :
 bash
 pip install pygame
 
-## 🛠️ Instructions d'Installation
+## Instructions d'Installation
 
 ### Installation des bibliothèques (Dépendances)
 Ouvrez votre terminal et exécutez la commande suivante pour installer tout le nécessaire :
