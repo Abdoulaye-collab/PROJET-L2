@@ -1,36 +1,34 @@
 import pygame
-from settings import COLOR_OCEAN_DARK, COLOR_TEXT_MAGIC, BUTTON_WIDTH,BUTTON_HEIGHT, BUTTONS_START_Y, BUTTON_CENTER_X as CENTER_X,FONT_NAME,SCREEN_WIDTH, SCREEN_HEIGHT
+from settings import COLOR_OCEAN_DARK, COLOR_MAGIC_ENEMY,COLOR_TEXT_MAGIC,COLOR_MAGIC_PLAYER, BUTTON_WIDTH,BUTTON_HEIGHT, BUTTONS_START_Y, BUTTON_CENTER_X as CENTER_X,FONT_NAME,SCREEN_WIDTH, SCREEN_HEIGHT
 
 # ====================================================================
 #  CLASSE MENU : GESTION DE L'ÉCRAN D'ACCUEIL
 # ====================================================================
 class Menu:
     # ----------------------------------------------------------------------
-    # FONCTION UTILITAIRE : DESSINER TEXTE AVEC CONTOUR
+    # FONCTION UTILITAIRE : DESSINER TEXTE AVEC CONTOUR ---
+# ----------------------------------------------------------------------
+    # FONCTION UTILITAIRE : DESSINER TEXTE AVEC CONTOUR (Version Pro)
     # ----------------------------------------------------------------------
-    def draw_outlined_text(self, text, font, color, center_pos):
+    def draw_outlined_text(self, text, font, color, target_rect):
         """
-        Dessine un texte avec un contour blanc automatique.
+        Dessine un texte avec un contour blanc épais et lisse.
         """
         COLOR_CONTOUR = (255, 255, 255) # Blanc
-        EPAISSEUR = 2 # Épaisseur du contour (2 est bon pour les petits textes)
+        EPAISSEUR = 3 
         
         surf_main = font.render(text, True, color)
         surf_outline = font.render(text, True, COLOR_CONTOUR)
-        rect = surf_main.get_rect(center=center_pos)
         
-        # Dessiner le contour (8 directions)
-        offsets = [
-            (-EPAISSEUR, -EPAISSEUR), (0, -EPAISSEUR), (EPAISSEUR, -EPAISSEUR),
-            (-EPAISSEUR, 0),                           (EPAISSEUR, 0),
-            (-EPAISSEUR, EPAISSEUR),  (0, EPAISSEUR),  (EPAISSEUR, EPAISSEUR)
-        ]
+        # On dessine le contour en cercle
+        for dx in range(-EPAISSEUR, EPAISSEUR + 1):
+            for dy in range(-EPAISSEUR, EPAISSEUR + 1):
+                if dx*dx + dy*dy <= EPAISSEUR*EPAISSEUR:
+                    self.screen.blit(surf_outline, target_rect.move(dx, dy))
         
-        for dx, dy in offsets:
-            self.screen.blit(surf_outline, rect.move(dx, dy))
-            
-        # Dessiner le texte principal
-        self.screen.blit(surf_main, rect)
+        # On dessine le texte principal
+        self.screen.blit(surf_main, target_rect)
+
     # ----------------------------------------------------------------------
     # A. INITIALISATION ET ATTRIBUTS
     # ----------------------------------------------------------------------
@@ -43,9 +41,8 @@ class Menu:
         self.font = pygame.font.Font(FONT_NAME, 40)
         self.title_font = pygame.font.Font(FONT_NAME, 60)
         self.subtitle_font = pygame.font.Font(FONT_NAME, 20)
-
-        sorcier_img = pygame.image.load('images/sorcier.png').convert_alpha() 
-        self.sorcier_image = pygame.transform.scale(sorcier_img, (self.DECO_WIDTH, self.DECO_HEIGHT))
+        self.background_image = pygame.image.load("images/menu.png").convert()
+        self.background_image = pygame.transform.scale(self.background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.sorcier_loaded = True
         
         self.subtitle_text = "Un jeu de stratégie magique par Abdoulaye et Shelly !"  # Modifier ici pour changer le sous-titre
@@ -56,19 +53,16 @@ class Menu:
         
         # Hauteurs Y des boutons
         Y1 = 300 # Jouer
-        Y2 = 400 # Options
-        Y3 = 500 # Quitter (Ajusté pour plus d'espace)
+        Y2 = 500 # Quitter (Ajusté pour plus d'espace)
         
         self.buttons = [
             {"text": "Jouer",   "rect": pygame.Rect(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT)},
-            {"text": "Options", "rect": pygame.Rect(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT)},
             {"text": "Quitter", "rect": pygame.Rect(0, 0, BUTTON_WIDTH, BUTTON_HEIGHT)},
         ]
         
         # Centrer les rectangles (Ceci assure que les boutons sont au milieu de l'écran)
         self.buttons[0]["rect"].center = (button_center_x, Y1)
         self.buttons[1]["rect"].center = (button_center_x, Y2)
-        self.buttons[2]["rect"].center = (button_center_x, Y3)
         
         # Déterminer la zone de travail des boutons pour le centrage des images :
         self.BUTTONS_START_Y = self.buttons[0]["rect"].top
@@ -88,7 +82,7 @@ class Menu:
     # C. AFFICHAGE DE L'ÉCRAN
     # ----------------------------------------------------------------------
     def draw(self):
-        self.screen.fill(COLOR_OCEAN_DARK)
+        self.screen.blit(self.background_image, (0, 0))
         center_x = SCREEN_WIDTH // 2
         
         
@@ -97,13 +91,14 @@ class Menu:
         
         title_text = "Wizard Battleships"
         # A. Préparation des surfaces
-        COLOR_OMBRE = (COLOR_TEXT_MAGIC)
+        COLOR_OMBRE = (COLOR_MAGIC_ENEMY)
         COLOR_CONTOUR = (255, 255, 255) # Blanc pour le contour
-        COLOR_INTERIEUR = (148,0,211)   # Couleur Magique pour l'intérieur
+        COLOR_INTERIEUR = (COLOR_MAGIC_PLAYER)   # Couleur Magique pour l'intérieur
 
         surf_ombre = self.title_font.render(title_text, True, COLOR_OMBRE)
-        surf_outline = self.title_font.render(title_text, True, COLOR_CONTOUR)
         surf_main = self.title_font.render(title_text, True, COLOR_INTERIEUR)
+        surf_outline = self.title_font.render(title_text, True, COLOR_CONTOUR)
+        
 
         # B. Position centrale
         center_pos = (center_x, 100)
@@ -123,8 +118,9 @@ class Menu:
         
         for dx, dy in offsets:
             outline_rect = base_rect.move(dx, dy)
-            self.screen.blit(surf_outline, outline_rect)
             self.screen.blit(surf_outline,base_rect.move(dx,dy))
+            self.screen.blit(surf_outline, outline_rect)
+            
         
         self.screen.blit(surf_main, base_rect)
 
@@ -139,7 +135,7 @@ class Menu:
         mouse_pos = pygame.mouse.get_pos()
 
         # Définition des couleurs thématiques pour les boutons
-        COLOR_BUTTON_FILL = COLOR_TEXT_MAGIC
+        COLOR_BUTTON_FILL = COLOR_MAGIC_ENEMY
         COLOR_BUTTON_INACTIVE = (0, 0, 0)       # Gris neutre / Pierre
         COLOR_BUTTON_HOVER = COLOR_TEXT_MAGIC   # Or Magique (au survol)
         COLOR_TEXT_BUTTON = (10, 25, 75)        # Texte en Bleu Nuit (pour contraster)
@@ -150,21 +146,29 @@ class Menu:
             # Dessin du remplissage du bouton
             pygame.draw.rect(self.screen, COLOR_BUTTON_FILL, rect)
 
-            # Définition de la couleur de la bordure (effet de survol)
+            # Gestion couleur bordure
             if rect.collidepoint(mouse_pos):
                 border_color = COLOR_BUTTON_HOVER
             else:
                 border_color = COLOR_BUTTON_INACTIVE
             
-            # Dessin de la bordure
+            # Dessin de la bordure du bouton
             pygame.draw.rect(self.screen, border_color, rect, 3)
 
+            # --- CORRECTION ICI ---
+            # 1. On calcule d'abord le rectangle où le texte doit aller (au centre du bouton)
+            # On crée une surface temporaire juste pour avoir la taille
+            temp_surf = self.font.render(button["text"], True, (0,0,0))
+            text_target_rect = temp_surf.get_rect(center=rect.center)
+
+            # 2. On appelle la fonction avec le bon argument (target_rect)
             self.draw_outlined_text(
                 text=button["text"],
                 font=self.font,
                 color=(0,255,240),
-                center_pos=rect.center
+                target_rect=text_target_rect  # <--- C'est ça qui corrige l'erreur !
             )
+            # ----------------------
 
             # Dessin du texte
             text_surf = self.font.render(button["text"], True, COLOR_TEXT_BUTTON) # Texte en Bleu Nuit
@@ -191,10 +195,7 @@ class Menu:
             
         # b. Sorcier (à gauche)
         # On recule de la largeur de l'image + la marge
-        sorcier_x = button_edge_x_right + MARGIN_FROM_BUTTON
+        # sorcier_x = button_edge_x_right + MARGIN_FROM_BUTTON
         
-        if self.sorcier_loaded and self.sorcier_image:
-            self.screen.blit(self.sorcier_image, (sorcier_x, deco_y))
-            
-
-        pygame.display.flip()
+        # if self.sorcier_loaded and self.sorcier_image:
+        #     self.screen.blit(self.sorcier_image, (sorcier_x, deco_y))

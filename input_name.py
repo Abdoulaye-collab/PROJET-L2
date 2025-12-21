@@ -2,8 +2,34 @@ import pygame
 import sys
 import math
 import random
-from settings import FONT_NAME,COLOR_OCEAN_DARK, COLOR_TEXT_MAGIC, COLOR_UI_BACKGROUND,SCREEN_WIDTH,SCREEN_HEIGHT
+from settings import FONT_NAME,COLOR_OCEAN_DARK, COLOR_TEXT_MAGIC,COLOR_MAGIC_PLAYER, COLOR_UI_BACKGROUND,SCREEN_WIDTH,SCREEN_HEIGHT
 
+# --- FONCTIONS DE TRANSITION (À COPIER ICI) ---
+def transition_fade(screen):
+    """Fondu au noir (Sortie)"""
+    fade_surface = pygame.Surface(screen.get_size())
+    fade_surface.fill((0, 0, 0))
+    for alpha in range(0, 255, 30): # Vitesse du fondu
+        fade_surface.set_alpha(alpha)
+        screen.blit(fade_surface, (0, 0))
+        pygame.display.flip()
+        pygame.time.delay(30)
+
+def fade_in(screen, background_image):
+    """Fondu d'ouverture (Entrée)"""
+    fade_surface = pygame.Surface(screen.get_size())
+    fade_surface.fill((0, 0, 0))
+    # On va du Noir (255) vers Transparent (0)
+    for alpha in range(255, 0, -30):
+        if background_image:
+            screen.blit(background_image, (0,0))
+        else:
+            screen.fill((20,20,40)) # Couleur de fond par défaut
+        
+        fade_surface.set_alpha(alpha)
+        screen.blit(fade_surface, (0, 0))
+        pygame.display.flip()
+        pygame.time.delay(30)
 
 # --- FONCTION UTILITAIRE DE DESSIN (DOIT ÊTRE EN DEHORS DE input_names) ---
 def draw_dotted_line(surface, color, start_point, end_point, thickness, dash_length):
@@ -107,6 +133,7 @@ def input_names(screen):
     input_box_player.x = BOX_CENTERED_X
     input_box_ai.x = BOX_CENTERED_X
 
+    fade_in(screen, background_menu)
     #----------------------------------------------------------------------
     # A. BOUCLE PRINCIPALE ET GESTION DES ÉVÉNEMENTS
     # ----------------------------------------------------------------------
@@ -184,10 +211,16 @@ def input_names(screen):
         # --- 1. Titre de Bienvenue ---
         
         welcome_text = "Bienvenue, Sorcier de la Flotte !"
-        welcome_surf = welcome_font.render(welcome_text, True, COLOR_TEXT_MAGIC ) #VIOLET MAGIQUE
+        welcome_surf = welcome_font.render(welcome_text, True, COLOR_MAGIC_PLAYER ) #VIOLET MAGIQUE
         welcome_rect = welcome_surf.get_rect(center=(center_x, 90))
 
-
+        draw_outlined_text(
+            screen=screen,
+            text=welcome_text,
+            font=welcome_font,
+            color=COLOR_MAGIC_PLAYER, # La couleur intérieure (OR)
+            target_rect=welcome_rect
+        )
         # Ombre magique
         SHADOW_COLOR = (150, 0, 200) 
         shadow_rect = welcome_surf.get_rect(center=(center_x + 5, 93))
@@ -363,6 +396,6 @@ def input_names(screen):
     # ----------------------------------------------------------------------
     # C. FIN DE LA FONCTION
     # ----------------------------------------------------------------------
-    
+    transition_fade(screen)
     # Retourne le nom du joueur (strippé) et le nom de l'IA (strippé ou "IA" par défaut)
     return text_player.strip(), text_ai.strip() or "IA"

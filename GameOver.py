@@ -3,10 +3,11 @@ import os # Pour gérer les fichiers images
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FONT_NAME
 
 class GameOver:
-    def __init__(self, screen, winner_name, loser_name, game_time_seconds, cards_count):
+    def __init__(self, screen, winner_name, loser_name, game_time_seconds, cards_count, is_player_victory):
         self.screen = screen
         self.game_time_seconds = game_time_seconds
         self.cards_count = cards_count
+        self.is_player_victory = is_player_victory
         
         # --- GESTION DES NOMS ---
         if hasattr(winner_name, 'name'):
@@ -23,14 +24,14 @@ class GameOver:
         # On essaie de charger les images. Si elles n'existent pas, on met None.
         try:
             # Assure-toi que les images sont dans le même dossier ou dans assets/
-            self.victory_img = pygame.image.load("victory_bg.png").convert()
+            self.victory_img = pygame.image.load("images/gagnant.png").convert()
             self.victory_img = pygame.transform.scale(self.victory_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
         except:
             self.victory_img = None
             print("Image victory_bg.png non trouvée (Fond couleur par défaut)")
 
         try:
-            self.defeat_img = pygame.image.load("defeat_bg.png").convert()
+            self.defeat_img = pygame.image.load("images/perdant.png").convert()
             self.defeat_img = pygame.transform.scale(self.defeat_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
         except:
             self.defeat_img = None
@@ -59,26 +60,22 @@ class GameOver:
             is_player_winner = False
 
         # 2. CONFIGURATION DU THÈME (Couleurs & Textes)
-        if is_player_winner:
+        if self.is_player_victory:
             # --- THÈME JOUEUR (CYAN / VICTOIRE) ---
             main_title = "VICTOIRE !"
             sub_title = "L'océan est sous votre contrôle."
-            
-            # Couleurs Cyan
-            theme_color = (0, 255, 255)       # Cyan pur
-            shadow_color = (0, 100, 100)      # Cyan foncé
-            bg_fallback = (0, 50, 50)         # Fond si pas d'image
+            theme_color = (0, 255, 255)       
+            shadow_color = (0, 100, 100)      
+            bg_fallback = (0, 50, 50)         
             current_bg_img = self.victory_img
             
         else:
             # --- THÈME IA (VIOLET / DÉFAITE) ---
             main_title = "DÉFAITE..."
             sub_title = "Sombré dans les abysses..."
-            
-            # Couleurs Violettes
-            theme_color = (180, 50, 255)      # Violet Néon
-            shadow_color = (50, 0, 80)        # Violet très sombre
-            bg_fallback = (30, 0, 30)         # Fond si pas d'image
+            theme_color = (180, 50, 255)      
+            shadow_color = (50, 0, 80)        
+            bg_fallback = (30, 0, 30)         
             current_bg_img = self.defeat_img
 
         # 3. DESSIN DU FOND
@@ -108,9 +105,11 @@ class GameOver:
         self.screen.blit(sub_surf, (center_x - sub_surf.get_width()//2, 170))
         
         # 5. PANNEAU DE STATS
-        PANEL_Y = 230
-        PANEL_HEIGHT = 280
-        PANEL_RECT = pygame.Rect(center_x - 300, PANEL_Y, 600, PANEL_HEIGHT)
+        PANEL_WIDTH = 450
+        PANEL_Y = 290
+        PANEL_HEIGHT = 250
+        start_x = center_x - (PANEL_WIDTH // 2)
+        PANEL_RECT = pygame.Rect(start_x, PANEL_Y, PANEL_WIDTH, PANEL_HEIGHT)
         
         # Fond du panneau (Noir semi-transparent)
         s = pygame.Surface((PANEL_RECT.width, PANEL_RECT.height))
@@ -133,17 +132,20 @@ class GameOver:
             ("Durée :", time_str)
         ]
         
-        current_y = PANEL_Y + 40
+        current_y = PANEL_Y + 30
+        line_spacing = 45
+        side_margin = 30
+
         for label, value in stats_list:
             lbl = self.stat_font.render(label, True, (180, 180, 180))
-            self.screen.blit(lbl, (PANEL_RECT.x + 40, current_y))
+            self.screen.blit(lbl, (PANEL_RECT.x + side_margin, current_y))
             
             # La valeur est coloriée selon le thème pour faire joli
             val = self.stat_font.render(value, True, theme_color) 
-            val_rect = val.get_rect(right=PANEL_RECT.right - 40, top=current_y)
+            val_rect = val.get_rect(right=PANEL_RECT.right - side_margin, top=current_y)
             self.screen.blit(val, val_rect)
             
-            current_y += 55
+            current_y += line_spacing
             
         # 6. BOUTON
         mouse_pos = pygame.mouse.get_pos()
@@ -160,5 +162,3 @@ class GameOver:
         btn_txt = self.stat_font.render(self.button_text, True, btn_txt_col)
         btn_rect = btn_txt.get_rect(center=self.button_rect.center)
         self.screen.blit(btn_txt, btn_rect)
-
-        pygame.display.flip()

@@ -2,10 +2,11 @@ import pygame
 import random
 from player import Player, ALL_CARDS
 from settings import CARDS_ENABLED, FONT_NAME_2,COLOR_TEXT_MAGIC,FONT_NAME_GRIMOIRE,COLOR_MAGIC_PLAYER,COLOR_MAGIC_ENEMY, FONT_NAME, COLOR_UI_BACKGROUND,SCREEN_WIDTH,SCREEN_HEIGHT
-from ai_llm import get_ai_move
+from ai_llm import query_huggingface
 from ai_personalities import AI_PERSONALITIES, get_ai_phrase
 from cards import apply_card_effect, CARD_HEIGHT, CARD_SPACING, CARD_WIDTH
 from GameOver import GameOver
+from ai_llm import get_llm_coordinates
 from settings import (
     COLOR_OCEAN_DARK, COLOR_TEXT_MAGIC, COLOR_WATER_LIT, 
     COLOR_HIT, COLOR_SHIP, 
@@ -66,6 +67,7 @@ class Game:
 
         self.ai_personality = "Gentille"
         self.ai_phrase_to_display = ""
+        self.ai_targets_buffer = []
         self.extra_shot = 0
         self.projectile = None  
         self.ia_delay = 0
@@ -207,7 +209,8 @@ class Game:
                 self.player,  # Gagnant = Objet Joueur
                 self.enemy,   # Perdant = Objet IA
                 duration,
-                self.cards_played_total
+                self.cards_played_total,
+                True
             )
             return
 
@@ -231,30 +234,98 @@ class Game:
                 self.enemy,   # Gagnant = Objet IA
                 self.player,  # Perdant = Objet Joueur
                 duration,
-                self.cards_played_total
+                self.cards_played_total,
+                False
             )
             return
 
     def ai_play(self):
         if self.winner: return
-        personality_style = AI_PERSONALITIES[self.ai_personality]["style"]
-        row, col = get_ai_move(self.player.board, personality_style)
         
-        # Sécurité si l'IA renvoie n'importe quoi
-        if not (0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE):
-            available = [(r, c) for r in range(GRID_SIZE) for c in range(GRID_SIZE) if self.player.board[r][c] in [0, 1]]
-            if not available: return
-            row, col = random.choice(available)
+        row, col = None, None
 
-        result = self.shoot(self.enemy, row, col)
-        if result in ("Touché", "Renforcé"):
-            self.ai_phrase_to_display = get_ai_phrase(self.ai_personality, "hit")
-        else:
-            self.ai_phrase_to_display = get_ai_phrase(self.ai_personality, "miss")
+        # ---------------------------------------------------------
+        # PHASE 1 : MODE TARGET (Logique pure)
+        # Si on a des cibles en attente (suite à un touché précédent)
+        # ---------------------------------------------------------
+        if not hasattr(self, 'ai_targets_buffer'): self.ai_targets_buffer = []
 
-        self.turn_count += 1
-        self.player_turn = True
-        self.text_status = f"Tour de {self.player.name} !"
+        while self.ai_targets_buffer:
+            # On prend la prochaine cible prioritaire
+            candidate = self.ai_targets_buffer.pop(0) # On prend le premier (FIFO)
+            r, c = candidate
+            
+            # On vérifie que la case est valide et pas encore jouée
+            if 0 <= r < GRID_SIZE and 0 <= c < GRID_SIZE:
+                valeur = self.player.board[r][c]
+                if valeur == 0 or valeur == 1: # Eau ou Bateau caché
+                    row, col = r, c
+                    print(f"IA (TARGET) : Je finis le bateau en {row},{col}")
+                    break 
+        
+        # ---------------------------------------------------------
+        # PHASE 2 : MODE HUNT (Intuition LLM)
+        # Si aucune cible prioritaire, on cherche avec le LLM
+        # ---------------------------------------------------------
+        if row is None or col is None:
+            print("IA (HUNT) : Je cherche une nouvelle cible avec le LLM...")
+            
+            # Appel à ton fichier ai_llm.py
+            llm_move = get_llm_coordinates()
+            
+            if llm_move:
+                r_llm, c_llm = llm_move
+                # Vérification : Est-ce valide ?
+                if (0 <= r_llm < GRID_SIZE and 0 <= c_llm < GRID_SIZE and 
+                    self.player.board[r_llm][c_llm] in [0, 1]):
+                    row, col = r_llm, c_llm
+                    print(f"IA (LLM) : L'Oracle suggère {row},{col}")
+
+            # -----------------------------------------------------
+            # PHASE 3 : SECOURS (Aléatoire intelligent)
+            # Si le LLM a échoué ou donné une case invalide
+            # -----------------------------------------------------
+            if row is None:
+                print("IA (RANDOM) : LLM indisponible, tir aléatoire.")
+                available = []
+                for r in range(GRID_SIZE):
+                    for c in range(GRID_SIZE):
+                        if self.player.board[r][c] in [0, 1]:
+                            available.append((r, c))
+                
+                if available:
+                    # Astuce Damier (Checkerboard) pour optimiser la recherche
+                    checkerboard = [p for p in available if (p[0] + p[1]) % 2 == 0]
+                    if checkerboard and len(available) > 40:
+                        row, col = random.choice(checkerboard)
+                    else:
+                        row, col = random.choice(available)
+
+        # ---------------------------------------------------------
+        # ACTION : TIR ET MÉMOIRE
+        # ---------------------------------------------------------
+        if row is not None and col is not None:
+            # On tire
+            result = self.shoot(self.enemy, row, col)
+            
+            # SI TOUCHÉ -> ON AJOUTE LES VOISINS (C'est ta fonction register_result)
+            if result == "Touché":
+                # Haut, Bas, Gauche, Droite
+                voisins = [(row-1, col), (row+1, col), (row, col-1), (row, col+1)]
+                random.shuffle(voisins) # On mélange pour varier l'attaque
+                for v in voisins:
+                    # On les ajoute à la liste pour les prochains tours
+                    self.ai_targets_buffer.append(v)
+
+            # Gestion du texte d'ambiance
+            if result in ("Touché", "Renforcé"):
+                self.ai_phrase_to_display = get_ai_phrase(self.ai_personality, "hit")
+            else:
+                self.ai_phrase_to_display = get_ai_phrase(self.ai_personality, "miss")
+
+            self.turn_count += 1
+            self.player_turn = True
+            self.text_status = f"Tour de {self.player.name} !"
 
     def handle_event(self, event):
         # 1. GESTION DE L'ÉCRAN DE FIN
