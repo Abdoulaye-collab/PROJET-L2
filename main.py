@@ -6,9 +6,14 @@ from game import Game, load_assets
 from input_name import input_names
 from player import Player
 from placement import Placement
-from settings import COLOR_OCEAN_DARK, COLOR_TEXT_MAGIC,SCREEN_WIDTH, SCREEN_HEIGHT,CELL_SIZE
+from settings import COLOR_OCEAN_DARK, SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE
 from GameOver import GameOver
+from utils import transition_fade, fade_in_action
 
+
+# ====================================================================
+#  INITIALISATION
+# ====================================================================
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Wizards Battleship")
@@ -17,28 +22,24 @@ FPS = 30
 
 GAME_ASSETS = load_assets(CELL_SIZE)
 
-# Saisie des noms
-player_name, ai_name = input_names(screen)
-if not player_name:
-    pygame.quit()
-    exit()
-
-player = Player(player_name)
-enemy = Player(ai_name)
+# --- ETAT DU JEU ---
 menu = Menu(screen)
 in_menu = True
 in_game = False
 game_over_screen = None
 game = None
 
+# Intro stylée au lancement
+fade_in_action(screen, menu.draw)
+
 running = True
 while running:
-    if in_menu and menu.selected is None:
-        menu = Menu(screen)
-
+    
+    # Gestion des événements globaux
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        
         if in_menu:
             menu.handle_event(event)
         elif game_over_screen:
@@ -46,18 +47,40 @@ while running:
         elif game:
             game.handle_event(event)
 
-    if in_menu and menu.selected == "Jouer":
+    # =================================================================
+    # LOGIQUE PRINCIPALE (CHANGEMENTS D'ÉTATS)
+    # =================================================================
     
-        # Création du joueur et placement manuel
+    # 1. MENU -> JOUER
+    if in_menu and menu.selected == "Jouer":
+        
+        transition_fade(screen) 
+        
+        names = input_names(screen) 
+        
+        if not names: 
+            running = False
+            break
+            
+        player_name, ai_name = names
+        
+        # Placement
+        player = Player(player_name)
+        enemy = Player(ai_name)
         enemy.place_random_ships()
-        placement_screen = Placement(screen, player,GAME_ASSETS)
-        placing = True
+        
+        placement_screen = Placement(screen, player, GAME_ASSETS)
+        
+        # Fade In sur le Placement
+        fade_in_action(screen, placement_screen.draw)
 
+        # Boucle de placement
+        placing = True
         while placing:
             for ev in pygame.event.get():
                 if ev.type == pygame.QUIT:
                     pygame.quit()
-                    exit()
+                    sys.exit()
                 placement_screen.handle_event(ev)
 
             placement_screen.draw()
@@ -65,52 +88,86 @@ while running:
             clock.tick(FPS)
             placing = not placement_screen.done
 
-        player = placement_screen.player
+        # Fin Placement -> Lancement Jeu
+        transition_fade(screen)
 
-        game = Game(screen,GAME_ASSETS)
+        player = placement_screen.player 
+        game = Game(screen, GAME_ASSETS)
         game.player = player
         game.enemy = enemy
         game.start_time = pygame.time.get_ticks()
+        
+        # Petite fonction pour dessiner le jeu au démarrage (pour le fade in)
+        def draw_game_start():
+            screen.fill(COLOR_OCEAN_DARK)
+            game.draw()
+            
+        fade_in_action(screen, draw_game_start)
                 
         in_menu = False
         menu.selected = None
 
+    # 2. MENU -> QUITTER
     elif in_menu and menu.selected == "Quitter":
+        transition_fade(screen)
         running = False
         
+# 3. JEU -> GAME OVER
+    # On vérifie "game" d'abord pour éviter les erreurs si game est None
     if game and game.game_over:
-        # 1. On regarde si game.py a déjà préparé l'écran (avec les bonnes couleurs/noms)
-        if game.game_over_screen:
-            game_over_screen = game.game_over_screen
         
-        # 2. Sinon (Sécurité), on le crée manuellement en faisant attention aux types
-        else:
-            end_time = pygame.time.get_ticks()
-            total_time_seconds = (end_time - game.start_time) // 1000
-            
-            # On compare les OBJETS, pas les noms
-            if game.winner == game.player:
-                winner_obj = game.player
-                loser_obj = game.enemy
-            else:
-                winner_obj = game.enemy
-                loser_obj = game.player
+        # 1. On lance la transition noire TOUT DE SUITE
+        transition_fade(screen)
+        
+        # 2. PENDANT que l'écran est noir, on prépare la suite
+        # Calcul des stats
+        end_time = pygame.time.get_ticks()
+        total_time_seconds = (end_time - game.start_time) // 1000
+        
+        is_player_win = (game.winner == game.player)
+        winner_obj = game.player if is_player_win else game.enemy
+        loser_obj = game.enemy if is_player_win else game.player
 
-            game_over_screen = GameOver(
-                screen, 
-                winner_obj, 
-                loser_obj, 
-                total_time_seconds, 
-                game.cards_played_total
-            )
-            
-        game = None
+        # Création de l'écran de fin
+        game_over_screen = GameOver(
+            screen, 
+            winner_obj, loser_obj, 
+            total_time_seconds, 
+            game.cards_played_total,
+            is_player_win
+        )
         
+        # 3. CRUCIAL : On détruit l'objet game pour arrêter d'entrer dans ce if
+        game = None 
+        
+        # 4. On lance l'ouverture (Fade In) sur l'écran de victoire
+        fade_in_action(screen, game_over_screen.draw)
+        
+        # Petite sécurité : on vide encore les événements
+        pygame.event.clear()
+        
+# 4. GAME OVER -> RETOUR MENU
     if game_over_screen and game_over_screen.done:
+        
+        # 1. Transition noire
+        transition_fade(screen)
+        
+        # 2. On détruit l'écran de fin et on remet le menu
+        game_over_screen = None 
         in_menu = True
-        game_over_screen = None
+        
+        # On recrée un menu tout neuf
+        menu = Menu(screen) 
+        menu.selected = None # On s'assure qu'aucun bouton n'est pré-sélectionné
+        
+        # 3. Ouverture (Fade In) sur le menu
+        fade_in_action(screen, menu.draw)
+        
+        pygame.event.clear()
 
-
+    # =================================================================
+    # BOUCLE D'AFFICHAGE STANDARD
+    # =================================================================
     if in_menu:
         menu.draw()
     elif game_over_screen:
