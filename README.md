@@ -33,9 +33,9 @@ Le jeu se joue entièrement à la souris pour une fluidité maximale.
 | **Placer un navire** | Clic Gauche | Phase de Placement |
 | **Pivoter un navire** | Touche `R` | Phase de Placement |
 | **Tirer un projectile** | Clic Gauche | Phase de Combat (Grille Ennemie) |
-| **Activer une Carte** | Clic Gauche sur le haut de la carte | Phase de Combat (sous la Grille du Joueur) |
+| **Activer une Carte** | Clic Gauche sur la carte | Phase de Combat (sous la Grille du Joueur) |
 | **Utilisation de la carte** | Clic Gauche | Phase de Combat (Grille Enemie)
-| **Annuler la carte** | Clic Gauche sur le haut de la carte | Phase de Combat |
+| **Annuler la carte** | Clic Gauche sur la carte | Phase de Combat |
 | **Quitter** | Croix de la fenêtre | Tout le temps |
 
 ## Fonctionnalités Clés
