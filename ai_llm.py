@@ -1,45 +1,36 @@
 import requests
 import re
+import random
 
 HF_API_KEY = "hf_xxxxxxxxxxxxx"  # Mets ici ton token HuggingFace
 MODEL = "gpt2"
 
-def get_ai_move(player_grid, personality_style=""):
-    """
-    Envoie la grille + personnalité au modèle HF et reçoit une proposition de tir (row, col)
-    Retourne (-1, -1) si problème (tir aléatoire sera utilisé dans game.py)
-    """
-
-    url = f"https://api-inference.huggingface.co/models/{MODEL}"
+def query_huggingface(payload):
     headers = {"Authorization": f"Bearer {HF_API_KEY}"}
-
-    grid_str = "\n".join(" ".join(str(c) for c in row) for row in player_grid)
-
-    prompt = (
-        f"{personality_style}\n"
-        "Tu joues à la bataille navale.\n"
-        "Voici la grille du joueur :\n"
-        "(0=vide, 1=bateau, -1=touché, -2=manqué)\n\n"
-        f"{grid_str}\n\n"
-        "Donne uniquement des coordonnées (row,col)."
-    )
-
     try:
-        response = requests.post(url,
-                                 headers=headers,
-                                 json={"inputs": prompt, "parameters": {"max_new_tokens": 10}})
-        data = response.json()
+        # Timeout court (2s) pour ne pas bloquer le jeu si internet est lent
+        response = requests.post(MODEL, headers=headers, json=payload, timeout=2)
+        return response.json()
+    except:
+        return None
 
-        if isinstance(data, list) and "generated_text" in data[0]:
-            text = data[0]["generated_text"]
-        else:
-            return (-1, -1)
+def get_llm_coordinates():
+    """
+    Mode HUNT : Demande au LLM de choisir une case.
+    """
+    prompt = "Battleship move strategy. Best coordinates: 5,5 - 2,3 - 9,0 - "
+    
+    data = query_huggingface({
+        "inputs": prompt,
+        "parameters": {"max_new_tokens": 5, "temperature": 0.7}
+    })
 
-        match = re.search(r"(\d+)\s*,\s*(\d+)", text)
+    if data and isinstance(data, list) and 'generated_text' in data[0]:
+        text = data[0]['generated_text']
+        # On nettoie pour trouver "chiffre,chiffre"
+        new_text = text.replace(prompt, "")
+        match = re.search(r"(\d)\s*,\s*(\d)", new_text)
         if match:
             return int(match.group(1)), int(match.group(2))
 
-    except Exception:
-        return (-1, -1)
-
-    return (-1, -1)
+    return None

@@ -59,7 +59,7 @@ class Game:
         self.game_over_screen = None
         self.font = pygame.font.Font(FONT_NAME_GRIMOIRE, 50)
         self.title_font = pygame.font.Font(FONT_NAME_GRIMOIRE, 55)
-        self.background_image = pygame.image.load("images/fond_marin.png").convert()
+        self.background_image = pygame.image.load("assets/images/fond_marin.png").convert()
         # 2. Redimensionner l'image à la taille exacte de ta fenêtre
         self.background_image = pygame.transform.scale(self.background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.selected_card = None

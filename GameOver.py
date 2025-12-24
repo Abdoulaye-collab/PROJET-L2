@@ -24,14 +24,14 @@ class GameOver:
         # On essaie de charger les images. Si elles n'existent pas, on met None.
         try:
             # Assure-toi que les images sont dans le même dossier ou dans assets/
-            self.victory_img = pygame.image.load("images/gagnant.png").convert()
+            self.victory_img = pygame.image.load("assets/images/gagnant.png").convert()
             self.victory_img = pygame.transform.scale(self.victory_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
         except:
             self.victory_img = None
             print("Image victory_bg.png non trouvée (Fond couleur par défaut)")
 
         try:
-            self.defeat_img = pygame.image.load("images/perdant.png").convert()
+            self.defeat_img = pygame.image.load("assets/images/perdant.png").convert()
             self.defeat_img = pygame.transform.scale(self.defeat_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
         except:
             self.defeat_img = None
