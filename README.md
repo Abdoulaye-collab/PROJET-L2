@@ -114,7 +114,8 @@ Ce projet a été réalisé en collaboration par :
 
 * **[Shelly-Linda] [Rakotoarivelo]** 
 * **[Abdoulaye] [LY]** 
-* **Cadre :** Projet de Licence 2 Informatique - [Université Paris Nanterre]
+* **Cadre :** Projet en Algorithmique et Programmation de Licence 2 MIASHS parcours MIAGE - [Université Paris Nanterre]
 * **Ressource:**
     * Moteur: Pygame Community
-    * Images/Sons: 
+    * Images: générées par GEMINI et modifiées avec CANVA
+    * Sons: 
