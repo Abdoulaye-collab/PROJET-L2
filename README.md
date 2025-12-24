@@ -24,7 +24,7 @@ Le grimoire se referme, la magie opère. Le plateau de jeu s'anime d'énergies n
 ## Galerie
 | La Cabine | Le Grimoire | Le Duel |
 | :---: | :---: | :---: |
-| <img width="200" alt="accueilV2" src="https://github.com/user-attachments/assets/b8c3e6e9-845b-4685-a41f-642161a50d89" /> | <img width="200" alt="grimoire" src="https://github.com/user-attachments/assets/3df465fa-2bef-4931-8a3f-d09b730386dd" /> | <img width="200" alt="combatV2" src="https://github.com/user-attachments/assets/ee445c9f-8ede-41f2-9418-1a91ef3f8e59" /> |
+| <img width="200" alt="nomsV2" src="https://github.com/user-attachments/assets/42c20aa9-a42f-4bf2-9a18-f4c2c92578fd" /> | <img width="200" alt="grimoire" src="https://github.com/user-attachments/assets/3df465fa-2bef-4931-8a3f-d09b730386dd" /> | <img width="200" alt="combatV2" src="https://github.com/user-attachments/assets/ee445c9f-8ede-41f2-9418-1a91ef3f8e59" /> |
 
 ## Commandes et Contrôles
 Le jeu se joue entièrement à la souris pour une fluidité maximale.
