@@ -1,6 +1,7 @@
 # PROJET-L2
 
-# Wizard Battleship : Une bataille navale pas comme les autres
+![Bannière du Jeu](images/banner.png)
+# Wizard Battleship : Une bataille navale pas comme les autres...
 
 > Une réinterprétation immersive du jeu de stratégie classique, développée en Python avec Pygame.
 
