@@ -65,7 +65,7 @@ PROJET-L2/
 ````
 ## Installation 
 1. Cloner le projet:
-git clone [https://github.com/Abdoulaye-collab/PROJET-L2.git](https://github.com/Abdoulaye/PROJET-L2.git)
+git clone [https://github.com/Abdoulaye-collab/PROJET-L2](https://github.com/Abdoulaye/PROJET-L2.git)
 cd PROJET-L2
 
 2. Installer les dépendances:
