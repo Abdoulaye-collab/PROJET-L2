@@ -41,7 +41,7 @@ class Menu:
         self.font = pygame.font.Font(FONT_NAME, 40)
         self.title_font = pygame.font.Font(FONT_NAME, 60)
         self.subtitle_font = pygame.font.Font(FONT_NAME, 20)
-        self.background_image = pygame.image.load("images/menu.png").convert()
+        self.background_image = pygame.image.load("assets/images/menu.png").convert()
         self.background_image = pygame.transform.scale(self.background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.sorcier_loaded = True
         

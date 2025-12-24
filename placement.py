@@ -49,7 +49,7 @@ class Placement:
 
         # Chargement fond
         try:
-            image_path = "images/background.png"
+            image_path = "assets/images/background.png"
             background_img = pygame.image.load(image_path).convert()
             self.background_image = pygame.transform.scale(
                 background_img, 

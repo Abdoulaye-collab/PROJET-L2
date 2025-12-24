@@ -8,54 +8,8 @@ from player import Player
 from placement import Placement
 from settings import COLOR_OCEAN_DARK, SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE
 from GameOver import GameOver
+from utils import transition_fade, fade_in_action
 
-# ====================================================================
-#  FONCTIONS DE TRANSITION (VERSION STABILISÉE)
-# ====================================================================
-
-def transition_fade(screen):
-    """Fait un fondu au noir (FERMETURE)"""
-    fade_surface = pygame.Surface(screen.get_size())
-    fade_surface.fill((0, 0, 0))
-    
-    # On va de 0 à 255
-    for alpha in range(0, 256, 15): # Pas de 15 pour être fluide
-        fade_surface.set_alpha(alpha)
-        screen.blit(fade_surface, (0, 0))
-        pygame.display.flip()
-        pygame.time.delay(15)
-        
-        # IMPORTANT : Dit à l'OS que le jeu est vivant, mais ignore les actions
-        pygame.event.pump() 
-    
-    # Écran noir total + petite pause
-    screen.fill((0,0,0))
-    pygame.display.flip()
-    pygame.time.delay(100)
-    
-    # CRUCIAL : On supprime tous les clics faits pendant le noir
-    pygame.event.clear() 
-
-def fade_in_action(screen, draw_function):
-    """Fait apparaître l'écran doucement (OUVERTURE)"""
-    fade_surface = pygame.Surface(screen.get_size())
-    fade_surface.fill((0, 0, 0))
-    
-    # On va de 255 à 0
-    for alpha in range(255, -1, -15):
-        # 1. On dessine la scène cachée derrière
-        draw_function() 
-        
-        # 2. On dessine le voile noir par dessus
-        fade_surface.set_alpha(alpha)
-        screen.blit(fade_surface, (0, 0))
-        
-        pygame.display.flip()
-        pygame.time.delay(15)
-        pygame.event.pump()
-    
-    # CRUCIAL : On supprime tous les clics faits pendant l'animation
-    pygame.event.clear()
 
 # ====================================================================
 #  INITIALISATION

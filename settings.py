@@ -24,10 +24,10 @@ COLOR_PREVIEW_INVALID = (255,50,50)  # Placement invalide (Rouge vif)
 # ==================================================================================
 #                           TYPOGRAPHIE
 # ==================================================================================
-FONT_NAME = 'fonts/Sekuya-Regular.ttf'
-FONT_NAME_2 = 'fonts/DancingScript-Regular.ttf'
-FONT_NAME_GRIMOIRE = 'fonts/MagicSchoolOne.ttf'
-FONT_NAME_GRIMOIRE2 = 'fonts/MagicSchoolOne.ttf'
+FONT_NAME = 'assets/fonts/Sekuya-Regular.ttf'
+FONT_NAME_2 = 'assets/fonts/DancingScript-Regular.ttf'
+FONT_NAME_GRIMOIRE = 'assets/fonts/MagicSchoolOne.ttf'
+FONT_NAME_GRIMOIRE2 = 'assets/fonts/MagicSchoolOne.ttf'
 # ==================================================================================
 #                        DIMENSIONS DE L'ÉCRAN
 # ==================================================================================
