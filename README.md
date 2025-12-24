@@ -51,7 +51,7 @@ Le jeu se joue entièrement à la souris pour une fluidité maximale.
 Voici comment est organisé le code source :
 ```text
 PROJET-L2/
-├── assets/              # Images (fonds), Sons (.wav/.mp3), Polices (.ttf)
+├── assets/              # images (fonds), sounds (.wav/.mp3), fonts(.ttf)
 ├── screenshots/         # Images pour ce README et Overleaf
 ├── main.py              # Point d'entrée : Lance le jeu
 ├── input_name.py        # Phase 1 : Menu d'accueil et saisie des noms 
