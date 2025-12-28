@@ -51,17 +51,33 @@ Le jeu se joue entièrement à la souris pour une fluidité maximale.
 Voici comment est organisé le code source :
 ```text
 PROJET-L2/
-├── assets/              # images (fonds), sounds (.wav/.mp3), fonts(.ttf)
-├── screenshots/         # Images pour ce README et Overleaf
-├── main.py              # Point d'entrée : Lance le jeu
-├── input_name.py        # Phase 1 : Menu d'accueil et saisie des noms 
-├── placement.py         # Phase 2 : Grille tactique dans le grimoire (Placement des navires)
-├── game.py              # Phase 3 : Cœur du jeu (Boucle de combat, tirs, affichage)
-├── player.py            # Classes Player et Ship (Gestion de la flotte)
-├── cards.py             # Logique des cartes magiques (Sorts)
-├── ai_llm.py            # Cerveau de l'IA (Algorithme de chasse)
-├── game_over.py         # Gestion de l'écran de victoire/défaite
-└── settings.py          # Fichier de configuration (Constantes, Couleurs, Tailles)
+│
+├── main.py                 # 🚀 Point d'entrée principal du programme
+├── settings.py             # ⚙️ Configuration globale (Dimensions, Couleurs, Assets)
+│
+├── 🧠 Moteur de Jeu
+│   ├── game.py             # Cœur du jeu : Boucle principale, tours, tirs
+│   ├── player.py           # Classe Joueur : Gestion de la grille, flotte et inventaire
+│   ├── placement.py        # Phase de placement des navires (Drag & Drop)
+│   └── cards.py            # Logique des sortilèges (Double Tir, Radar, etc.)
+│
+├── 🎨 Interface & Graphismes
+│   ├── menu.py             # Menu Principal animé
+│   ├── input_name.py       # Écran de saisie des noms
+│   ├── GameOver.py         # Écran de fin de partie (Victoire/Défaite)
+│   ├── draw_utils.py       # Fonctions de dessin spécifiques (Grilles, HUD, Bateaux)
+│   ├── effects.py          # Système de particules (Explosions, Magie)
+│   └── utils.py            # Utilitaires génériques (Transitions, Texte contouré)
+│
+├── 🎮 Contrôles & Audio
+│   ├── input_handler.py    # Gestionnaire d'événements (Clics souris, Clavier)
+│   └── sound_manager.py    # Gestionnaire audio centralisé (Musique, SFX)
+│
+├── 🤖 Intelligence Artificielle
+│   ├── ai_llm.py           # Algorithme de décision de tir (Stratégie)
+│   └── ai_personalities.py # Système de dialogue et réactions de l'IA
+│
+└── 📁 assets/              # Dossier contenant Images, Sons et Polices
 ````
 ## Installation 
 1. Cloner le projet:
