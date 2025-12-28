@@ -52,16 +52,16 @@ Voici comment est organisé le code source :
 ```text
 PROJET-L2/
 │
-├── main.py                 # 🚀 Point d'entrée principal du programme
-├── settings.py             # ⚙️ Configuration globale (Dimensions, Couleurs, Assets)
+├── main.py                 #  Point d'entrée principal du programme
+├── settings.py             #  Configuration globale (Dimensions, Couleurs, Assets)
 │
-├── 🧠 Moteur de Jeu
+├──  Moteur de Jeu
 │   ├── game.py             # Cœur du jeu : Boucle principale, tours, tirs
 │   ├── player.py           # Classe Joueur : Gestion de la grille, flotte et inventaire
 │   ├── placement.py        # Phase de placement des navires (Drag & Drop)
 │   └── cards.py            # Logique des sortilèges (Double Tir, Radar, etc.)
 │
-├── 🎨 Interface & Graphismes
+├──  Interface & Graphismes
 │   ├── menu.py             # Menu Principal animé
 │   ├── input_name.py       # Écran de saisie des noms
 │   ├── GameOver.py         # Écran de fin de partie (Victoire/Défaite)
@@ -69,15 +69,15 @@ PROJET-L2/
 │   ├── effects.py          # Système de particules (Explosions, Magie)
 │   └── utils.py            # Utilitaires génériques (Transitions, Texte contouré)
 │
-├── 🎮 Contrôles & Audio
+├──  Contrôles & Audio
 │   ├── input_handler.py    # Gestionnaire d'événements (Clics souris, Clavier)
 │   └── sound_manager.py    # Gestionnaire audio centralisé (Musique, SFX)
 │
-├── 🤖 Intelligence Artificielle
+├──  Intelligence Artificielle
 │   ├── ai_llm.py           # Algorithme de décision de tir (Stratégie)
 │   └── ai_personalities.py # Système de dialogue et réactions de l'IA
 │
-└── 📁 assets/              # Dossier contenant Images, Sons et Polices
+└──  assets/              # Dossier contenant Images, Sons et Polices
 ````
 ## Installation 
 1. Cloner le projet:
