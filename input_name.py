@@ -4,16 +4,19 @@ import random
 import math
 from settings import * 
 from utils import transition_fade, fade_in_action, draw_outlined_text, draw_dotted_line
-# J'ai ajouté draw_outlined_text dans les imports utils, 
-# sinon copie la fonction draw_outlined_text tout en haut de ce fichier.
-
-# Si tu as une fonction draw_dotted_line quelque part, assure-toi qu'elle est accessible.
-# Sinon, ajoute-la ou importe-la ici.
 
 def input_names(screen):
+    """
+    Fonction principale de l'écran de saisie.
+    Gère l'affichage, les animations (particules) et la saisie clavier.
+    """
     pygame.font.init()
+    clock = pygame.time.Clock()
+
     
-    # --- CONSTANTES D'INTERFACE (TES COULEURS) ---
+    # ====================================================================
+    # 1. CONSTANTES & CONFIGURATION 
+    # ====================================================================
     HEIGHT_BOX = 50
     WIDTH_BOX = 300
     GAP_VERTICAL = 80
@@ -22,7 +25,7 @@ def input_names(screen):
     DASH_LENGTH = 8 
     TEXT_COLOR = (255,255,255)
     
-    # Chargement images
+    # --- Chargement des Images ---
     background_menu = pygame.image.load('assets/images/fond_bateau.png').convert()
     background_menu = pygame.transform.smoothscale(background_menu, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
@@ -33,62 +36,59 @@ def input_names(screen):
     parchemin_rect = parchemin_img.get_rect(midbottom=(screen.get_width()//2, screen.get_height()-20))
     parchemin_loaded = True
 
-    # --- INITIALISATION DES POLICES ET HORLOGE ---
+    # --- Initialisation des Polices ---
     welcome_font = pygame.font.Font(FONT_NAME, 50) 
     font = pygame.font.Font(FONT_NAME, 35) 
     font_saisie = pygame.font.Font(FONT_NAME_GRIMOIRE, 40)
-    clock = pygame.time.Clock()
-
-    # --- CONSTANTE ET POSITIONNEMENT ---
+    
+    # ====================================================================
+    # 2. POSITIONNEMENT DES BOÎTES
+    # ====================================================================
     center_x = screen.get_width() // 2 
     BOX_CENTERED_X = center_x - (WIDTH_BOX // 2)
 
-    # Position Y de référence
+    # Position Y de référence 
     Y_PLAYER_REF = parchemin_rect.top + 100
     
+    # Création des rectangles (Hitbox)
     input_box_player = pygame.Rect(BOX_CENTERED_X, Y_PLAYER_REF, WIDTH_BOX, HEIGHT_BOX)
     input_box_ai = pygame.Rect(BOX_CENTERED_X, Y_PLAYER_REF + GAP_VERTICAL, WIDTH_BOX, HEIGHT_BOX)
 
     # Couleurs d'interaction
     color_inactive = pygame.Color('lightskyblue3')
     color_active = pygame.Color('dodgerblue2')
-    color_player = color_inactive
-    color_ai = color_inactive
 
-    # États
+    # États du jeu
     active_player = False
     active_ai = False
     text_player = ''
     text_ai = ''
     done = False
 
-    # --- CURSEUR CLIGNOTANT ET PARTICULES ---
-    cursor_visible = True
-    cursor_timer = pygame.time.get_ticks()
+    # Gestion des particules et curseur
     particles = []
-    CURSOR_BLINK_RATE = 500 
 
     # ====================================================================
-    #  LA FONCTION DE DESSIN (C'est ici qu'on a mis tout ton code de rendu)
+    # 3. FONCTION DE DESSIN INTERNE 
     # ====================================================================
     def draw_whole_scene():
-        # 1. Fond & Parchemin
+        # A. Fond & Parchemin
         screen.blit(background_menu,(0,0))
         if parchemin_loaded:
             screen.blit(parchemin_img, parchemin_rect)
 
-        # 2. Titre
+        # B. Titre Principal
         Y_TITRE = 100
         welcome_text = "Déclinez votre Identité !"
         welcome_surf = welcome_font.render(welcome_text, True, COLOR_MAGIC_PLAYER) 
         welcome_rect = welcome_surf.get_rect(center=(center_x, 90))
 
-        # Ombre magique (Ton code original)
+        # Ombre du titre
         SHADOW_COLOR = (150, 0, 200) 
         shadow_rect = welcome_surf.get_rect(center=(center_x + 5, 93))
         screen.blit(welcome_font.render(welcome_text, True, SHADOW_COLOR), shadow_rect)
         
-        # Contour Titre (Ton code original)
+        # Contour du titre (Appel fonction utils)
         draw_outlined_text(
             screen=screen,
             text=welcome_text,
@@ -97,12 +97,11 @@ def input_names(screen):
             target_rect=welcome_rect
         )
 
+        # C. Étiquettes de Rôles ("Amiral" et "Menace")
         DISTANCE_SOUS_LE_TITRE = 80
         START_Y_BOITES = Y_TITRE + DISTANCE_SOUS_LE_TITRE
-
-        # 3. Étiquettes de Rôles
         
-        # a. Joueur
+        # -- Joueur --
         label_player_str = "Amiral des Arcanes"
         label_player_surf = font.render(label_player_str, True, (150, 0, 200))
         label_player_rect = label_player_surf.get_rect(
@@ -111,10 +110,10 @@ def input_names(screen):
         )
         draw_outlined_text(screen, label_player_str, font, (150, 0, 200), label_player_rect)
         
-        # Mise à jour position boîte Joueur
+        # Ajustement position boite Joueur sous le texte
         input_box_player.y = label_player_rect.bottom + GAP_LABEL_TO_BOX
 
-        # b. IA
+        # -- IA --
         ESPACE_ENTRE_LES_DEUX = 130
         label_ai_str = "Menace des Profondeurs"
         label_ai_surf = font.render(label_ai_str, True, (150, 0, 200))
@@ -124,20 +123,17 @@ def input_names(screen):
         )
         draw_outlined_text(screen, label_ai_str, font, (150, 0, 200), label_ai_rect)
         
-        # Mise à jour position boîte IA
+        # Ajustement position boite IA sous le texte
         input_box_ai.y = label_ai_rect.bottom + GAP_LABEL_TO_BOX
 
-        # 4. Lignes Pointillées (Ton code original)
-        # (J'assume que la fonction draw_dotted_line existe dans ton projet)
-        try:
-            draw_dotted_line(screen, color_player, (input_box_player.left, input_box_player.bottom), (input_box_player.right, input_box_player.bottom), LINE_THICKNESS, DASH_LENGTH)
-            draw_dotted_line(screen, color_ai, (input_box_ai.left, input_box_ai.bottom), (input_box_ai.right, input_box_ai.bottom), LINE_THICKNESS, DASH_LENGTH)
-        except NameError:
-            # Sécurité si la fonction n'est pas importée, on fait une ligne simple
-            pygame.draw.line(screen, color_player, (input_box_player.left, input_box_player.bottom), (input_box_player.right, input_box_player.bottom), LINE_THICKNESS)
-            pygame.draw.line(screen, color_ai, (input_box_ai.left, input_box_ai.bottom), (input_box_ai.right, input_box_ai.bottom), LINE_THICKNESS)
+        # D. Lignes Pointillées (Les zones de saisie)
+        color_player = color_active if active_player else color_inactive
+        color_ai = color_active if active_ai else color_inactive
 
-        # 5. Texte Saisi
+        draw_dotted_line(screen, color_player, (input_box_player.left, input_box_player.bottom), (input_box_player.right, input_box_player.bottom), LINE_THICKNESS, DASH_LENGTH)
+        draw_dotted_line(screen, color_ai, (input_box_ai.left, input_box_ai.bottom), (input_box_ai.right, input_box_ai.bottom), LINE_THICKNESS, DASH_LENGTH)
+       
+        # E. Texte Saisi (Le vrai texte)
         player_text_surf = font_saisie.render(text_player, True, TEXT_COLOR)
         player_text_rect = player_text_surf.get_rect(center=input_box_player.center)
         screen.blit(player_text_surf, player_text_rect)
@@ -146,11 +142,12 @@ def input_names(screen):
         ai_text_rect = ai_text_surf.get_rect(center=input_box_ai.center)
         screen.blit(ai_text_surf, ai_text_rect)
 
-        # 6. Curseur Magique & Particules (Ton code exact)
+        # F. Curseur Magique & Particules
         target_box = None
         current_text = ""
         ORB_COLOR = (255, 255, 255) # Valeur par défaut
         
+        # Détection de la boite active pour placer l'effet
         if active_ai:
             target_box = input_box_ai
             current_text = text_ai
@@ -161,12 +158,13 @@ def input_names(screen):
             ORB_COLOR = (0, 255, 255)
             
         if target_box:
+            # Calcul position curseur (à la fin du texte)
             text_surf = font.render(current_text, True, TEXT_COLOR)
             text_width = text_surf.get_width()
             cursor_x = target_box.centerx + (text_width // 2) + 2
             cursor_y = target_box.centery
 
-            # Spawn particules
+            # Génération Particules
             for _ in range(2):
                 particles.append({
                     'x': cursor_x + random.uniform(-3, 3),
@@ -178,16 +176,17 @@ def input_names(screen):
                     'color': ORB_COLOR
                 })
             
-            # Orbe central
+            # Dessin de l'Orbe (Curseur)
             current_time_orb = pygame.time.get_ticks()
             alpha = int(abs(math.sin(current_time_orb / 300)) * 200) + 55
             radius = 8
+
             orb_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
             pygame.draw.circle(orb_surface, ORB_COLOR + (alpha,), (radius, radius), radius)
             pygame.draw.circle(orb_surface, (255, 255, 255), (radius, radius), radius - 3)
             screen.blit(orb_surface, (cursor_x - radius, cursor_y - radius))
 
-        # Gestion Particules
+        # Mise à jour et dessin des particules existantes
         for p in particles[:]:
             p['x'] += p['dx']
             p['y'] += p['dy']
@@ -206,9 +205,8 @@ def input_names(screen):
             screen.blit(s_part, (p['x'] - p['size'], p['y'] - p['size']))
     
     # ====================================================================
-    #  LANCEMENT DE LA TRANSITION FLUIDE
+    # 4. TRANSITION D'ENTRÉE (FADE IN)
     # ====================================================================
-    # On appelle la transition EN LUI DONNANT LA FONCTION DE DESSIN
     fade_in_action(screen, draw_whole_scene)
 
     # ====================================================================
@@ -220,44 +218,53 @@ def input_names(screen):
                 pygame.quit()
                 sys.exit()
             
+            # --- Gestion de la Souris ---
             if event.type == pygame.MOUSEBUTTONDOWN:
                 active_player = input_box_player.collidepoint(event.pos)
                 active_ai = input_box_ai.collidepoint(event.pos)
-                
-                color_player = color_active if active_player else color_inactive
-                color_ai = color_active if active_ai else color_inactive
             
+            # --- Gestion du Clavier ---
             if event.type == pygame.KEYDOWN:
+                # Touche ENTRÉE
                 if event.key == pygame.K_RETURN:
                     if active_player:
+                        # Si on valide le joueur, on passe auto à l'IA
                         if text_player.strip() != '':
                             active_player = False; active_ai = True
-                            color_player = color_inactive; color_ai = color_active
-                            cursor_visible = True
-                            cursor_timer = pygame.time.get_ticks()
+                            active_ai = True
+
+                            pygame.event.clear()
+                            continue
                     elif active_ai: 
+                        # Si on valide l'IA et que les deux sont remplis, on finit
                         if text_ai.strip() != '' and text_player.strip() != '':
                             done = True
                             continue # On sort pour valider
-
+                
+                # Touche EFFACER et ÉCRITURE
                 if active_ai:
                     if event.key == pygame.K_BACKSPACE:
                         text_ai = text_ai[:-1]
-                    elif len(text_ai) < 15:
+                    elif len(text_ai) < 15: # Limite caractères
                         text_ai += event.unicode
                 
                 elif active_player:
                     if event.key == pygame.K_BACKSPACE:
                         text_player = text_player[:-1]
-                    elif len(text_player) < 15:
+                    elif len(text_player) < 15: # Limite caractères
                         text_player += event.unicode
 
-        # --- DESSIN : ON APPELLE NOTRE FONCTION MAGIQUE ---
+        # Appel de la fonction de dessin
         draw_whole_scene()
         
         pygame.display.flip()
         clock.tick(30)
 
-    # Fin de la boucle
+    # ====================================================================
+    # 6. FIN ET RETOUR
+    # ====================================================================
     transition_fade(screen)
-    return text_player.strip(), text_ai.strip() or "Le Léviathan"
+    # Si l'IA n'a pas de nom, on met un défaut
+    final_ai = text_ai.strip() if text_ai.strip() else "Le Léviathan"
+    
+    return text_player.strip(), final_ai

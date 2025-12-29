@@ -1,16 +1,17 @@
 import pygame
 
-def transition_fade(screen):
+# ====================================================================
+#  FONCTIONS DE TRANSITION (FADE IN / FADE OUT)
+# ====================================================================
+def transition_fade(screen: pygame.Surface, speed: int = 25):
     """
-    Fait un fondu au noir (FERMETURE).
+    Fait un fondu au noir (FERMETURE) pour une transition fluide.
     Bloque le jeu le temps de l'animation.
     """
+
+    # Création d'une surface noire transparente
     fade_surface = pygame.Surface(screen.get_size())
     fade_surface.fill((0, 0, 0))
-    
-    # Vitesse : 25 (Bon équilibre entre fluide et rapide)
-    # Tu peux remettre 15 si tu préfères plus lent
-    speed = 25 
     
     for alpha in range(0, 256, speed): 
         fade_surface.set_alpha(alpha)
@@ -29,15 +30,13 @@ def transition_fade(screen):
     # CRUCIAL : On supprime tous les clics faits pendant le noir
     pygame.event.clear() 
 
-def fade_in_action(screen, draw_function):
+def fade_in_action(screen: pygame.Surface, draw_function,speed: int = 25):
     """
     Fait apparaître l'écran doucement (OUVERTURE).
     draw_function : La fonction qui dessine ce qu'il y a derrière le noir.
     """
     fade_surface = pygame.Surface(screen.get_size())
     fade_surface.fill((0, 0, 0))
-    
-    speed = 25
     
     # On va de 255 (Noir) à 0 (Transparent)
     for alpha in range(255, -1, -speed):
@@ -58,11 +57,13 @@ def fade_in_action(screen, draw_function):
         pygame.time.delay(15)
         pygame.event.pump()
     
-    # CRUCIAL : On supprime les clics parasites
+    # CRUCIAL : On supprime les clics parasites avant de rendre la main au joueur
     pygame.event.clear()
 
 
-    # --- FONCTION UTILITAIRE DE DESSIN (DOIT ÊTRE EN DEHORS DE input_names) ---
+# ====================================================================
+#  FONCTIONS DE DESSIN UTILITAIRES
+# ====================================================================
 def draw_dotted_line(surface, color, start_point, end_point, thickness, dash_length):
     """Dessine une ligne pointillée (seulement horizontale pour la simplicité ici)."""
     if start_point[1] != end_point[1]:
@@ -76,16 +77,20 @@ def draw_dotted_line(surface, color, start_point, end_point, thickness, dash_len
         pygame.draw.line(surface, color, start, end, thickness)
         current_x += dash_length * 2
 
-# --- FONCTION UTILITAIRE CONTOUR TEXTE ---
+
 def draw_outlined_text(screen, text, font, color, target_rect):
         """
         Dessine un texte avec un contour blanc automatique.
         """
+
         COLOR_CONTOUR = (255, 255, 255) # Blanc
         EPAISSEUR = 1 # Épaisseur du contour (2 est bon pour les petits textes)
         
+        # Création des surfaces
         surf_main = font.render(text, True, color)
         surf_outline = font.render(text, True, COLOR_CONTOUR)
+        
+        # On centre le texte sur la zone cible
         rect = surf_main.get_rect(center=target_rect.center)
         
         # Dessiner le contour (8 directions)
@@ -95,9 +100,11 @@ def draw_outlined_text(screen, text, font, color, target_rect):
             (-EPAISSEUR, EPAISSEUR),  (0, EPAISSEUR),  (EPAISSEUR, EPAISSEUR)
         ]
         
+        # 1. Dessiner le contour (en dessous)
         for dx, dy in offsets:
             # rect_decale = rect.move(dx,dy)
             screen.blit(surf_outline, rect.move(dx, dy))
-        
+            
+        # 2. Dessiner le texte principal (au dessus)
         screen.blit(surf_main,rect)
             

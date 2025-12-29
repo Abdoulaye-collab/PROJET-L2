@@ -2,7 +2,7 @@ import pygame
 import time
 import sys
 from menu import Menu
-from game import Game, load_assets
+from game import Game
 from input_name import input_names
 from player import Player
 from placement import Placement
@@ -20,7 +20,7 @@ pygame.display.set_caption("Wizards Battleship")
 clock = pygame.time.Clock()
 FPS = 30
 
-GAME_ASSETS = load_assets(CELL_SIZE)
+game = Game(screen, {})
 
 # --- ETAT DU JEU ---
 menu = Menu(screen)
@@ -69,7 +69,7 @@ while running:
         enemy = Player(ai_name)
         enemy.place_random_ships()
         
-        placement_screen = Placement(screen, player, GAME_ASSETS)
+        placement_screen = Placement(screen, player, {})
         
         # Fade In sur le Placement
         fade_in_action(screen, placement_screen.draw)
@@ -92,7 +92,7 @@ while running:
         transition_fade(screen)
 
         player = placement_screen.player 
-        game = Game(screen, GAME_ASSETS)
+        game = Game(screen, {})
         game.player = player
         game.enemy = enemy
         game.start_time = pygame.time.get_ticks()

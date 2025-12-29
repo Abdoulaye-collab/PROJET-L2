@@ -1,53 +1,33 @@
 import pygame
 import random
-import math
-from settings import (
-    CELL_SIZE, COLOR_OCEAN_DARK, COLOR_TEXT_MAGIC, COLOR_SHIP, COLOR_UI_BACKGROUND, COLOR_MAGIC_PLAYER,
-    COLOR_PREVIEW_VALID, COLOR_PREVIEW_INVALID,
-    GRID_OFFSET_X_PLAYER, GRID_OFFSET_Y, GRID_WIDTH_TOTAL,
-    FONT_NAME, FONT_NAME_GRIMOIRE, FONT_NAME_GRIMOIRE2, SCREEN_HEIGHT, SCREEN_WIDTH
-)
 
-# --- CONSTANTES DE PLACEMENT ---
-GRID_SIZE = 10
-PLACEMENT_CELL_SIZE = 55
-PLACEMENT_GRID_WIDTH_TOTAL = GRID_SIZE * PLACEMENT_CELL_SIZE
-
-# Calculs de position
-CENTER_HALF_X = SCREEN_WIDTH // 4 
-PLACEMENT_GRID_OFFSET_X = CENTER_HALF_X - (PLACEMENT_GRID_WIDTH_TOTAL // 2)
-PLACEMENT_GRID_OFFSET_Y = 150
-
-
-# --- NOUVELLES COULEURS THÉMATIQUES ---
-COLOR_GRID_NEON = (0, 255, 255)       # Cyan Électrique (Grille)
-COLOR_GRIMOIRE_INK = (90, 70, 50)     # Marron foncé (Texte non placé / Ombre)
-COLOR_TEXT_NEON = (0, 200, 255)     # Blanc bleuté (Texte placé par-dessus)
-
-
-# ====================================================================
-#       CLASSE PLACEMENT : GESTION DE LA PHASE DE DÉPLOIEMENT
-# ===================================================================
+from settings import *
+from effects import ParticleSystem
+import draw_utils as du
 
 class Placement:
+    # ==============================================================================
+    #  1. INITIALISATION
+    # ==============================================================================
     def __init__(self, screen, player, assets):
         self.screen = screen
         self.player = player
         self.assets = assets
 
-        # --- État du placement ---
+        # --- ÉTAT DU PLACEMENT ---
         self.current_ship_index = 0
-        self.orientation = "H"
+        self.orientation = "H" # "H"orizontal ou "V"ertical
         self.done = False
         
-        # On charge les polices ici pour éviter de le faire en boucle
+        # --- POLICES D'ÉCRITURE ---
         self.font_grimoire = pygame.font.Font(FONT_NAME_GRIMOIRE, 60)
         self.font_coords = pygame.font.Font(FONT_NAME_GRIMOIRE2, 30)
         self.font_large = pygame.font.Font(FONT_NAME_GRIMOIRE2, 70)
 
-        self.magic_particles = []
+        # --- SYSTÈME DE PARTICULES ---
+        self.particles = ParticleSystem()
 
-        # Chargement fond
+        # --- CHARGEMENT DU FOND ---
         try:
             image_path = "assets/images/background.png"
             background_img = pygame.image.load(image_path).convert()
@@ -56,18 +36,19 @@ class Placement:
                 (self.screen.get_width(), self.screen.get_height())
             )
         except:
-            # Fallback si l'image n'existe pas
             self.background_image = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
             self.background_image.fill((10, 10, 30))
 
-    # ----------------------------------------------------------------------
-    # GESTION DES ÉVÉNEMENTS
-    # ----------------------------------------------------------------------
+    # ==============================================================================
+    #  2. GESTION DES ÉVÉNEMENTS (CLAVIER / SOURIS)
+    # ==============================================================================
     def handle_event(self, event):
+        # Rotation
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
                 self.orientation = "V" if self.orientation == "H" else "H"
 
+        # Clic gauche pour placer
         elif event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
             col = (x - PLACEMENT_GRID_OFFSET_X) // PLACEMENT_CELL_SIZE
@@ -76,36 +57,11 @@ class Placement:
             if 0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE:
                 self.place_ship(row, col)
 
-    # ----------------------------------------------------------------------
-    # LOGIQUE DE PLACEMENT
-    # ----------------------------------------------------------------------
-    def place_ship(self, row, col):
-        if self.current_ship_index >= len(self.player.ships):
-            self.done = True
-            return
-        
-        name, size = self.player.ships[self.current_ship_index]
-        
-        # 1. Validation
-        is_valid, positions = self.check_placement_validity(row, col, size)
-        if not is_valid:
-            return
-        
-        # 2. Mise à jour grille
-        for r, c in positions:
-            self.player.board[r][c] = 1
-
-        # 3. Enregistrement
-        self.player.ship_positions[name] = positions
-
-        # Effet visuel
-        self.trigger_magic_effect(positions)
-        
-        self.current_ship_index += 1
-        if self.current_ship_index >= len(self.player.ships):
-            self.done = True
-
+    # ==============================================================================
+    #  3. LOGIQUE DE PLACEMENT
+    # ==============================================================================
     def check_placement_validity(self, start_row, start_col, size):
+        """ Vérifie si le bateau rentre dans la grille et ne chevauche pas """
         cells = []
         is_valid = True
         
@@ -113,37 +69,70 @@ class Placement:
             r = start_row + i if self.orientation == "V" else start_row
             c = start_col + i if self.orientation == "H" else start_col
             
-            # Limites et chevauchement
+            # Vérif 1: Hors limites
             if not (0 <= r < GRID_SIZE and 0 <= c < GRID_SIZE):
                 is_valid = False
+            # Vérif 2: Déjà occupé
             elif self.player.board[r][c] != 0:
                 is_valid = False
                 
             cells.append((r, c))
 
         return is_valid, cells
+    
+    def place_ship(self, row, col):
+        """ Valide et enregistre le bateau sur la grille """
+        if self.current_ship_index >= len(self.player.ships):
+            self.done = True
+            return
+        
+        name, size = self.player.ships[self.current_ship_index]
+        is_valid, positions = self.check_placement_validity(row, col, size)
+        
+        if not is_valid: return
+        
+        # Enregistrement
+        for r, c in positions:
+            self.player.board[r][c] = 1
 
-    # ----------------------------------------------------------------------
-    # DESSIN : FORME DE BATEAU
-    # ----------------------------------------------------------------------
+            # FX : Explosion magique lors du placement (Cyan)
+            px = PLACEMENT_GRID_OFFSET_X + c * PLACEMENT_CELL_SIZE + PLACEMENT_CELL_SIZE // 2
+            py = PLACEMENT_GRID_OFFSET_Y + r * PLACEMENT_CELL_SIZE + PLACEMENT_CELL_SIZE // 2
+            self.particles.trigger_hit_particles(px, py, (0, 255, 255))
+
+        self.player.ship_positions[name] = positions
+        self.current_ship_index += 1
+        
+        # Fin du placement ?
+        if self.current_ship_index >= len(self.player.ships):
+            self.done = True
+
+    # ==============================================================================
+    #  4. FONCTIONS DE DESSIN (GRILLE & BATEAUX)
+    # ==============================================================================
     def draw_ship_shape(self, row, col, length, orientation, color, alpha=255):
+        """ Dessine un rectangle arrondi représentant un bateau """
+
         px = PLACEMENT_GRID_OFFSET_X + col * PLACEMENT_CELL_SIZE
         py = PLACEMENT_GRID_OFFSET_Y + row * PLACEMENT_CELL_SIZE
         padding = 5 
-        
+
+        # Calcul dimensions selon orientation
         if orientation == "H":
             width_px = (length * PLACEMENT_CELL_SIZE) - (padding * 2)
             height_px = PLACEMENT_CELL_SIZE - (padding * 2)
         else:
             width_px = PLACEMENT_CELL_SIZE - (padding * 2)
             height_px = (length * PLACEMENT_CELL_SIZE) - (padding * 2)
-            
+        
+        # Cas 1 : Transparence (Preview)
         if alpha < 255:
             s = pygame.Surface((width_px, height_px), pygame.SRCALPHA)
             rect_surf = pygame.Rect(0, 0, width_px, height_px)
             pygame.draw.rect(s, color + (alpha,), rect_surf, border_radius=15)
             pygame.draw.rect(s, (255, 255, 255, alpha), rect_surf, 2, border_radius=15)
             self.screen.blit(s, (px + padding, py + padding))
+        # Cas 2 : Solide (Placé)
         else:
             ship_rect = pygame.Rect(px + padding, py + padding, width_px, height_px)
             pygame.draw.rect(self.screen, color, ship_rect, border_radius=15)
@@ -151,14 +140,13 @@ class Placement:
             border_col = (min(color[0]+40, 255), min(color[1]+40, 255), min(color[2]+40, 255))
             pygame.draw.rect(self.screen, border_col, ship_rect, 2, border_radius=15)
 
-    # ----------------------------------------------------------------------
-    # DESSIN : GRILLE (STYLE NÉON)
-    # ----------------------------------------------------------------------
     def draw_grid(self):
+        """ Affiche la grille (Lignes, Chiffres, Lettres) """
+
         letters = "ABCDEFGHIJ"
         font_grid_big = pygame.font.Font(FONT_NAME_GRIMOIRE2, 30)
         for row in range(GRID_SIZE):
-            # 1. Chiffres à gauche (Cyan/Blanc)
+            # Chiffre (Gauche)
             label_num = font_grid_big.render(str(row + 1), True, COLOR_GRIMOIRE_INK)
             num_rect = label_num.get_rect(
                 midright=(PLACEMENT_GRID_OFFSET_X - 15, 
@@ -172,11 +160,10 @@ class Placement:
                     PLACEMENT_GRID_OFFSET_Y + row * PLACEMENT_CELL_SIZE,
                     PLACEMENT_CELL_SIZE, PLACEMENT_CELL_SIZE
                 )
-                
-                # --- MODIFICATION : GRILLE CYAN ---
+                # Case vide
                 pygame.draw.rect(self.screen, COLOR_GRIMOIRE_INK, rect, 1)
-
-                # 2. Lettres en haut (A-J)
+                
+                # Lettre (Haut)
                 if row == 0:
                     label_char = self.font_coords.render(letters[col], True, COLOR_GRIMOIRE_INK)
                     char_rect = label_char.get_rect(
@@ -184,70 +171,25 @@ class Placement:
                     )
                     self.screen.blit(label_char, char_rect)
 
-    # ----------------------------------------------------------------------
-    #  GESTION DES EFFETS MAGIQUES
-    # ----------------------------------------------------------------------
-    def trigger_magic_effect(self, positions):
-        for r, c in positions:
-            px = PLACEMENT_GRID_OFFSET_X + c * PLACEMENT_CELL_SIZE + PLACEMENT_CELL_SIZE // 2
-            py = PLACEMENT_GRID_OFFSET_Y + r * PLACEMENT_CELL_SIZE + PLACEMENT_CELL_SIZE // 2
-            
-            for _ in range(20):
-                speed = random.uniform(2, 5) # Vitesse variable
-                angle = random.uniform(0, 6.28) # Angle aléatoire (0 à 2pi)
-
-                self.magic_particles.append({
-                    'x': px,
-                    'y': py,
-                    'dx': math.cos(angle) * speed,
-                    'dy': math.sin(angle) * speed,
-                    'timer': random.randint(10, 25),
-                    'size': random.randint(3, 6),
-                    'color': random.choice([(0, 255, 255), (255, 255, 255)])
-                })
-
-    def update_and_draw_particles(self):
-        for i in range(len(self.magic_particles) - 1, -1, -1):
-            p = self.magic_particles[i]
-            p['x'] += p['dx']
-            p['y'] += p['dy']
-            p['timer'] -= 1
-            p['size'] -= 0.1
-            
-            if p['timer'] <= 0 or p['size'] <= 0:
-                self.magic_particles.pop(i)
-                continue
-            
-            alpha = int((p['timer'] / 50) * 255)
-            if alpha > 255: alpha = 255
-            if alpha < 0: alpha = 0
-            radius = int(p['size'])
-            if radius < 1: radius = 1
-
-            s = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-            pygame.draw.circle(s, p['color'] + (alpha,), (radius, radius), radius)
-            self.screen.blit(s, (p['x'] - radius, p['y'] - radius))
-
-    # ----------------------------------------------------------------------
-    # DESSIN : ÉCRAN GLOBAL
-    # ----------------------------------------------------------------------
+    # ==============================================================================
+    #  5. DESSIN GLOBAL (INTERFACE UI)
+    # ==============================================================================
     def draw(self):
         self.screen.blit(self.background_image,(0,0))
     
-        # Constantes locales pour l'affichage
+        # --- CONSTANTES UI LOCALES ---
         CENTER_HALF_RIGHT_X = self.screen.get_width() * 3 // 4 
         INSTRUCTION_START_Y = 150 
         LIST_START_Y = INSTRUCTION_START_Y + 100
         LIST_LINE_SPACING = 45
         
-        # 1. TITRE
-        # On utilise une couleur claire pour le titre principal
+        # --- A. TITRE ---
         title_surf = self.font_large.render(f"Grille du Sorcier : {self.player.name}", True, (COLOR_GRIMOIRE_INK))
         grid_center_x = PLACEMENT_GRID_OFFSET_X + (GRID_SIZE * PLACEMENT_CELL_SIZE) // 2
         title_rect = title_surf.get_rect(midtop=(grid_center_x, 5))
         self.screen.blit(title_surf, title_rect)
 
-        # 2. INSTRUCTIONS
+        # --- B. INSTRUCTIONS ---
         if self.current_ship_index < len(self.player.ships):
             name, size = self.player.ships[self.current_ship_index]
             
@@ -257,7 +199,7 @@ class Placement:
             instr2 = self.font_grimoire.render("[R] pour tourner le navire", True, COLOR_GRIMOIRE_INK)
             self.screen.blit(instr2, instr2.get_rect(centerx=CENTER_HALF_X, y=PLACEMENT_GRID_OFFSET_Y + PLACEMENT_GRID_WIDTH_TOTAL + 10))
 
-        # 3. LISTE DES BATEAUX (À Droite)
+        # --- C. LISTE DES BATEAUX (DROITE) ---
         title_list = self.font_grimoire.render("Flotte à placer :", True, COLOR_GRIMOIRE_INK)
         self.screen.blit(title_list, title_list.get_rect(centerx=CENTER_HALF_RIGHT_X, y=LIST_START_Y ))
         
@@ -273,45 +215,37 @@ class Placement:
             ship_rect.y = next_y
 
             if is_placed:
-                # --- EFFET MAGIQUE : OMBRE GRIMOIRE + LUMIÈRE NÉON ---
                 
-                # 1. Couche du dessous (Ombre / Encre)
+                # Effet Néon (Placé)
                 shadow_surf = self.font_grimoire.render(text_display, True, COLOR_GRIMOIRE_INK)
                 shadow_rect = shadow_surf.get_rect(centerx=CENTER_HALF_RIGHT_X + 2, y=next_y + 2) # Décalage +2
                 self.screen.blit(shadow_surf, shadow_rect)
                 
-                # 2. Couche du dessus (Lumière magique)
                 neon_surf = self.font_grimoire.render(text_display, True, COLOR_TEXT_NEON)
                 neon_rect = neon_surf.get_rect(centerx=CENTER_HALF_RIGHT_X, y=next_y)
                 self.screen.blit(neon_surf, neon_rect)
                 
                 # Particules sur le texte placé (Magie)
-                for _ in range(random.randint(1,2)):
+                if random.random() < 0.1:
                     px = random.randint(neon_rect.left, neon_rect.right)
                     py = random.randint(neon_rect.top, neon_rect.bottom)
-                    self.magic_particles.append({
-                        'x': px, 
-                        'y': py,
-                        'dx': random.uniform(-0.5, 0.5),
-                        'dy': random.uniform(-2, -0.5),
-                        'timer': random.randint(20, 40),
-                        'size': random.randint(2,5),
-                        'color': (0, 255, 255)
-                    })
-
+                    # Appelle la fonction qu'on a ajoutée dans effects.py
+                    self.particles.add_particle(px, py, (0, 255, 255))
             else:
-                # --- PAS ENCORE PLACÉ : JUSTE L'ENCRE ---
-                ship_surf = self.font_grimoire.render(text_display, True, COLOR_GRIMOIRE_INK)
-                self.screen.blit(ship_surf, ship_surf.get_rect(centerx=CENTER_HALF_RIGHT_X, y=next_y))
-            
+                # Effet Encre (Pas encore placé)
+                s = self.font_grimoire.render(text_display, True, COLOR_GRIMOIRE_INK)
+                self.screen.blit(s, s.get_rect(centerx=CENTER_HALF_RIGHT_X, y=next_y))
+
+
             next_y += LIST_LINE_SPACING + 20
 
-        # 4. AFFICHER LA GRILLE
+        # --- D. GRILLE & BATEAUX PLACÉS ---
         self.draw_grid()
         
-        # 5. AFFICHER LES BATEAUX VALIDÉS
-        for ship_name, positions in self.player.ship_positions.items():
+        for name, positions in self.player.ship_positions.items():
             if not positions: continue
+
+            # Calcul de la forme
             sorted_pos = sorted(positions)
             start_r, start_c = sorted_pos[0]
             if len(positions) > 1:
@@ -321,25 +255,20 @@ class Placement:
                 orientation, length = "H", 1
             self.draw_ship_shape(start_r, start_c, length, orientation, COLOR_MAGIC_PLAYER)
 
+            # Effet Fumée Magique sur les bateaux
             for r, c in positions:
-                # On ne génère pas à chaque frame sinon c'est trop chargé (30% de chance par case)
-                if random.random() < 0.3: 
-                    # Centre de la case
-                    px_center = PLACEMENT_GRID_OFFSET_X + c * PLACEMENT_CELL_SIZE + PLACEMENT_CELL_SIZE // 2
-                    py_center = PLACEMENT_GRID_OFFSET_Y + r * PLACEMENT_CELL_SIZE + PLACEMENT_CELL_SIZE // 2
-                    
-                    # On crée une particule
-                    self.magic_particles.append({
-                        'x': px_center + random.randint(-15, 15), # Un peu partout dans la case
-                        'y': py_center + random.randint(-15, 15),
-                        'dx': random.uniform(-0.5, 0.5), # Bouge un peu sur les côtés
-                        'dy': random.uniform(-2, -0.5),  # Monte doucement vers le haut (Fumée)
-                        'timer': random.randint(20, 40), # Durée de vie moyenne
-                        'size': random.randint(2, 5),    # Taille variée
-                        'color': (0, 255, 255)           # Cyan
-                    })
+                # On calcule px/py AVANT le random pour éviter le crash
+                px= PLACEMENT_GRID_OFFSET_X + c * PLACEMENT_CELL_SIZE + PLACEMENT_CELL_SIZE // 2
+                py = PLACEMENT_GRID_OFFSET_Y + r * PLACEMENT_CELL_SIZE + PLACEMENT_CELL_SIZE // 2
 
-        # 6. AFFICHER LE BATEAU FANTÔME (Prévisualisation)
+                if random.random() < 0.2:
+                    self.particles.add_particle(
+                        px + random.randint(-15, 15), 
+                        py + random.randint(-15, 15), 
+                        (0, 255, 255)
+                    )    
+
+        # --- E. GHOST SHIP (PRÉVISUALISATION) ---
         if self.current_ship_index < len(self.player.ships):
             name, size = self.player.ships[self.current_ship_index]
             mx, my = pygame.mouse.get_pos()
@@ -349,17 +278,19 @@ class Placement:
             grid_end_x = PLACEMENT_GRID_OFFSET_X + grid_width
             grid_end_y = PLACEMENT_GRID_OFFSET_Y + grid_height
 
+            # Si souris dans la grille
             if (PLACEMENT_GRID_OFFSET_X <= mx < grid_end_x) and \
                (PLACEMENT_GRID_OFFSET_Y <= my < grid_end_y):
 
                 col = (mx - PLACEMENT_GRID_OFFSET_X) // PLACEMENT_CELL_SIZE
                 row = (my - PLACEMENT_GRID_OFFSET_Y) // PLACEMENT_CELL_SIZE
 
-                # Correction du bug <= GRID_SIZE (il faut < GRID_SIZE)
+
                 if 0 <= col < GRID_SIZE and 0 <= row < GRID_SIZE:
                     is_valid, _ = self.check_placement_validity(row, col, size)
                     color = COLOR_PREVIEW_VALID if is_valid else COLOR_PREVIEW_INVALID
                     opacity = 150 if is_valid else 180
                     self.draw_ship_shape(row, col, size, self.orientation, color, opacity)
-            
-        self.update_and_draw_particles()
+        
+        # --- F. MISE À JOUR PARTICULES ---
+        self.particles.update_and_draw(self.screen)
