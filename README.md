@@ -140,7 +140,7 @@ Si le temps le permettait, voici les fonctionnalités que nous aimerions ajouter
 * Moteur: Pygame Community
 * Images: générées par GEMINI et modifiées avec CANVA
 * Sons: https://freesound.org/
-* Polices : Googlefont (Sekuya, MagicSchool)
+* Polices : https://fonts.google.com/
   
 ## L'Équipe de Développement
 
