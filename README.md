@@ -7,6 +7,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue?style=flat&logo=python)
 ![Pygame](https://img.shields.io/badge/Pygame-2.x-green?style=flat&logo=pygame)
+![Hugging Face](https://img.shields.io/badge/IA-Hugging_Face-yellow)
 ![Status](https://img.shields.io/badge/Status-Terminé-success)
 
 ## L'Expérience de Jeu
@@ -21,11 +22,20 @@ Le jeu bascule **à l'intérieur du grimoire**. Les pages s'ouvrent pour révél
 ### 3. Le Duel des Arcanes (Phase de Combat)
 Le grimoire se referme, la magie opère. Le plateau de jeu s'anime d'énergies néons et cyan. Chaque tir est un sortilège, chaque impact une explosion de particules. Vous affrontez une IA tactique dans un déluge d'effets visuels.
 
+---
 ## Galerie
 | La Cabine | Le Grimoire | Le Duel |
 | :---: | :---: | :---: |
 | <img width="200" alt="nomsV2" src="https://github.com/user-attachments/assets/a298e519-1685-44d5-b6d3-1962816c099f" /> | <img width="200" alt="grimoire" src="https://github.com/user-attachments/assets/3df465fa-2bef-4931-8a3f-d09b730386dd" /> | <img width="200" alt="combatV2" src="https://github.com/user-attachments/assets/ee445c9f-8ede-41f2-9418-1a91ef3f8e59" /> |
 
+## Fonctionnalités Clés
+* **Interface Complète :** Navigation fluide entre plusieurs écrans (Menu, Placement, Jeu, Fin).
+* **Inscription Immersive :** Saisissez votre nom et nommez votre rival depuis votre bureau de commandement.
+* **Système de Cartes & Mana :** Utilisez des sorts (Radar, Bombe, Salve...) pour renverser le cours de la bataille.
+* **Moteur de Particules :** Explosions dynamiques, effets magique et impacts visuels faits "main".
+* **Intelligence Artificielle :** Une IA capable de stratégie (mode "Chasse") et de dialogue via l'API Hugging Face.
+* **Design Sonore :** Musique d'ambiance, bruitages d'impacts, de sort pour renforcer l'immersion.
+---
 ## Commandes et Contrôles
 Le jeu se joue entièrement à la souris pour une fluidité maximale.
 | Action | Commande | Contexte |
@@ -37,16 +47,7 @@ Le jeu se joue entièrement à la souris pour une fluidité maximale.
 | **Utilisation de la carte** | Clic Gauche | Phase de Combat (Grille Enemie)
 | **Annuler la carte** | Clic Gauche sur la carte | Phase de Combat |
 | **Quitter** | Croix de la fenêtre | Tout le temps |
-
-## Fonctionnalités Clés
-* **Interface Complète :** Navigation fluide entre plusieurs écrans :
-    * *Inscription du Sorcier:* Saisissez votre nom et nommez votre rival depuis votre bureau de commandement (Vue sur mer).
-    * *Options :* Paramétrez le son et l'affichage avant le combat.
-* **Système de Cartes & Mana :** Utilisez des sorts (Radar, Bombe, Salve...) pour renverser le cours de la bataille.
-* **Moteur de Particules :** Explosions dynamiques, effets magique et impacts visuels faits "main".
-* **Intelligence Artificielle :** Une IA capable de "chasser" (Target mode) lorsqu'elle touche un navire.
-* **Design Sonore :** Musique d'ambiance, bruitages d'impacts, de sort pour renforcer l'immersion.
-
+---
 * ## Structure du Projet
 Voici comment est organisé le code source :
 ```text
@@ -79,59 +80,71 @@ PROJET-L2/
 │
 └──  assets/              # Dossier contenant Images, Sons et Polices
 ````
-## Installation 
-1. Cloner le projet:
-git clone [https://github.com/Abdoulaye-collab/PROJET-L2](https://github.com/Abdoulaye/PROJET-L2.git)
-cd PROJET-L2
-
-2. Installer les dépendances:
-
-## 📋 Prérequis au bon fonctionnement
-
-Pour lancer le jeu correctement, votre environnement doit impérativement contenir :
-
-* **PYTHON version 3.11** : Version recommandée pour la compatibilité des bibliothèques.
-* **PYGAME** : Le moteur graphique pour l'interface et les sons.
-* **Bibliothèque Hugging Face** : Pour permettre la communication avec l'IA.
-* **Clé API Hugging Face** : Un token d'accès pour activer les capacités de réflexion de l'IA.
-
 ---
+## Installation et Lancement
 
-### Installation de Pygame
+### 1. Prérequis Techniques
+* **Python 3.11+** doit être installé sur votre machine.
+* Une **connexion internet active** est requise pour permettre à l'IA de réfléchir et de discuter (API Hugging Face).
 
-Pygame est indispensable pour gérer l'affichage graphique, les sons et les interactions avec la souris. Voici comment l'installer selon votre système :
-
-#### 1. Commande d'installation classique
-Dans la plupart des cas, cette commande dans votre terminal suffit :
-bash
-pip install pygame
-
-## Instructions d'Installation
-
-### Installation des bibliothèques (Dépendances)
-Ouvrez votre terminal et exécutez la commande suivante pour installer tout le nécessaire :
-
-
+### 2. Récupération du Projet
+Ouvrez un terminal et clonez le dépôt (ou extrayez l'archive fournie) :
+```bash
+git clone [https://github.com/Abdoulaye-collab/PROJET-L2.git](https://github.com/Abdoulaye-collab/PROJET-L2.git)
+cd PROJET-L2
+````
+### 3. Installation des Dépendances
+Le jeu nécessite **pygame** pour le moteur graphique et **huggingface_hub** pour l'intelligence artificielle.
+Installez-les via pip :
+```bash
 pip install pygame huggingface_hub
+````
+### 4. Configuration de l'IA
+Note pour la correction : Une clé API Hugging Face valide est déjà intégrée dans le code source (**ai_llm.py**). Vous n'avez aucune configuration à effectuer : le module de chat et la stratégie avancée de l'IA fonctionneront immédiatement.
 
-4. Lancer le jeu: python main.py
+### 5. Lancer le Jeu
+Une fois dans le dossier du projet, lancez simplement la commande :
+```bash
+python main.py
+````
+(Note : Sur certains systèmes Mac/Linux, utilisez **python3 main.py**)
 
-## Pistes d'Amélioration 
-Si le temps le permettait, voici les fonctionnalités qu'on aimerait ajouter : 
-* Un mode jouer contre jouer
-* Un mode mort subite ou les deux joeurs n'ont qu' un seul bateau
-* Un mode avec des cartes 50/50 qui permettrait d'avoir une chance sur deux d'etre benefique ou negatif pour les joueurs 
+### Dépannage rapide
+* **Erreur** **ModuleNotFoundError** : Vérifiez que vous avez bien lancé la commande **pip install** de l'étape 3.
+* **Pas de son** : Vérifiez que vos haut-parleurs sont activés (le jeu utilise Pygame Mixer).
+* **L'IA ne répond pas** : Vérifiez votre connexion internet. Si le réseau de l'université bloque les API externes, essayez en partage de connexion.
+---
+## Pistes d'Amélioration
+Si le temps le permettait, voici les fonctionnalités que nous aimerions ajouter : 
 
-## Crédits
-Sons du jeu : https://freesound.org/
+### Interface & Expérience Utilisateur
+* **Menu d'Options :** Ajouter une interface pour régler le volume sonore (Musique/Bruitages) et la taille de la fenêtre en temps réel.
+* **Personnalisation (Skins) :** Laisser le joueur choisir son allégeance magique au début (Team Cyan ou Team Violet).
+* **Système d'Avatars :** Intégrer des portraits visuels ("Mascottes") qui réagissent selon l'état de la partie (Content quand on touche, Triste quand on est touché).
+* **Sauvegarde & Navigation :**
+    * Ajouter un bouton "Retour" pour naviguer fluidement entre les menus.
+    * Implémenter un système de sauvegarde (sérialisation) pour reprendre une partie en cours.
+### Nouveaux Modes de Jeu
+* **Mode Multijoueur :** Permettre à deux joueurs de s'affronter en réseau local (Sockets) ou sur le même écran..
+* **"Mort Subite":** Un mode hardcore où chaque joueur ne possède qu'un seul bateau. La première erreur est fatale !
+* **Difficulté IA Modulable :** Ajouter un sélecteur de niveau pour l'IA :
+    * *Novice :* Tirs purement aléatoires.
+    * *Stratège :* L'IA actuelle (Chasse + LLM).
+    * *Omniscient :* Une IA "Impossible" qui triche légèrement (probabilités augmentées).
+### Mécaniques de Jeu
+* **Cartes "Risque" :** Ajouter des cartes à double tranchant (50% de chance d'aider, 50% de chance de pénaliser).
+---
+  
+
+## Crédits et Ressources
+* Moteur: Pygame Community
+* Images: générées par GEMINI et modifiées avec CANVA
+* Sons: https://freesound.org/
+* Polices : Googlefont (Sekuya, MagicSchool)
+  
 ## L'Équipe de Développement
 
-Ce projet a été réalisé en collaboration par :
+Ce projet a été réalisé dans le cadre de l'UE *Algorithmique et Programmation* de Licence 2 MIASHS parcours MIAGE à l'**Université Paris Nanterre**.
+* **Shelly-Linda Rakotoarivelo** 
+* **Abdoulaye LY** 
 
-* **[Shelly-Linda] [Rakotoarivelo]** 
-* **[Abdoulaye] [LY]** 
-* **Cadre :** Projet en Algorithmique et Programmation de Licence 2 MIASHS parcours MIAGE - [Université Paris Nanterre]
-* **Ressource:**
-    * Moteur: Pygame Community
-    * Images: générées par GEMINI et modifiées avec CANVA
-    * Sons: 
