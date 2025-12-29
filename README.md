@@ -78,7 +78,13 @@ PROJET-L2/
 │   ├── ai_llm.py           # Algorithme de décision de tir (Stratégie)
 │   └── ai_personalities.py # Système de dialogue et réactions de l'IA
 │
-└──  assets/              # Dossier contenant Images, Sons et Polices
+└──  assets/               # Dossier contenant Images, Sons et Polices
+└── rapport/               # Dossier rapport
+    │
+    ├── L2_rapport_rakotoarivelo_ly.pdf     #Le fichier final pour la lecture
+    ├── L2_rapport_rakotoarivelo_ly.tex     #Le fichier source modifiable
+    │
+    └── images/                             #Les images insérées dans le rapport
 ````
 ---
 ## Installation et Lancement
