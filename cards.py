@@ -1,31 +1,34 @@
 import random
 
-# --- PARAMÈTRES DES CARTES ---
-CARD_WIDTH = 130   
-CARD_HEIGHT = 150  
-CARD_SPACING = 20  
-
 def apply_card_effect(game, card_name, target_row, target_col):
     """
     Applique l'effet d'une carte sur le jeu.
+    Args:
+        game: L'instance principale du jeu (accès à player, enemy, sounds, etc.)
+        card_name (str): Le nom de la carte jouée.
+        target_row, target_col: La case visée (utile pour Radar/Salve).
     """
-    # Debug pour voir le nom exact reçu
-    print(f"--- ACTIVATION : Reçu '{card_name}' (Type: {type(card_name)}) ---")
     
     player = game.player
     enemy = game.enemy
 
-    # On met le nom en majuscule pour éviter les soucis (ex: "Bombe" devient "BOMBE")
+    # 1. Normalisation du nom
     name_upper = str(card_name).upper().strip()
 
-    # --- CARTE 1 : TIR DOUBLE (Accepte "2-TIR", "DOUBLE TIR", "2 TIR") ---
+    print(f"--- [CARDS] ACTIVATION : '{name_upper}' visée ({target_row}, {target_col}) ---")
+    
+    # ===========================================================
+    #  CARTE 1 : DOUBLE TIR (Bonus d'action)
+    # ===========================================================
     if "2" in name_upper or "DOUBLE" in name_upper:
         print("   -> Effet : DOUBLE TIR activé")
         game.extra_shot += 1
         game.text_status = "DOUBLE TIR : +1 munition !"
-        if hasattr(game, 'sound_card'): game.sound_card.play()
+        game.sounds.play_card()
 
-    # --- CARTE 2 : RADAR (Accepte "RADAR", "SCAN") ---
+    # ===========================================================
+    #  CARTE 2 : RADAR (Information)
+    # ===========================================================
     elif "RADAR" in name_upper or "SCAN" in name_upper:
         print("   -> Effet : RADAR activé")
         valeur_case = enemy.board[target_row][target_col]
@@ -39,39 +42,54 @@ def apply_card_effect(game, card_name, target_row, target_col):
         elif valeur_case == -1:
             game.text_status = "RADAR : Épave détectée."
         
-        if hasattr(game, 'sound_card'): game.sound_card.play()
+        game.sounds.play_card()
 
-    # --- CARTE 3 : BOMBE (Accepte "BOMBE", "BOUM", "BOMB") ---
+    # ===========================================================
+    #  CARTE 3 : BOMBE (Frappe Aléatoire)
+    # ===========================================================
     elif "BOMB" in name_upper or "BOUM" in name_upper:
         print("   -> Effet : BOMBE activée")
+        # On choisit une case au hasard sur toute la grille
         r, c = random.randint(0, 9), random.randint(0, 9)
+        
         game.text_status = f"BOUM ! Bombe larguée en {chr(65+c)}{r+1} !"
+        # On utilise la fonction de tir du jeu pour gérer les dégâts/partic
         game.shoot(player, r, c)
 
-    # --- CARTE 4 : BOUCLIER (Accepte "BOUCLIER", "SHIELD", "PROTECTION") ---
+    # ===========================================================
+    #  CARTE 4 : BOUCLIER (Défense)
+    # ===========================================================
     elif "BOUCLIER" in name_upper or "SHIELD" in name_upper:
         print("   -> Effet : BOUCLIER activé")
         if "Bouclier_Actif" not in player.reinforced_ships:
             player.reinforced_ships.append("Bouclier_Actif")
             game.text_status = "BOUCLIER ACTIF : Flotte protégée !"
-            if hasattr(game, 'sound_card'): game.sound_card.play()
+            game.sounds.play_card()
         else:
             game.text_status = "Bouclier déjà actif !"
 
-    # --- CARTE 5 : SABOTAGE (Accepte "SABOTAGE", "HACK") ---
+    # ===========================================================
+    #  CARTE 5 : SABOTAGE (Contrôle)
+    # ===========================================================
     elif "SABO" in name_upper or "HACK" in name_upper:
         print("   -> Effet : SABOTAGE activé")
-        game.ia_pending = False
-        game.player_turn = True
+        game.ia_pending = False # Annule le timer de réflexion de l'IA
+        game.player_turn = True # Force le tour à revenir au joueur
         game.text_status = "SABOTAGE : L'IA passe son tour !"
-        if hasattr(game, 'sound_card'): game.sound_card.play()
+        game.sounds.play_card()
 
-    # --- CARTE 6 : SALVE (Accepte "SALVE", "RAFALE") ---
+    # ===========================================================
+    #  CARTE 6 : SALVE (Attaque de Zone - Ligne entière)
+    # ===========================================================
     elif "SALVE" in name_upper or "RAFALE" in name_upper:
         print("   -> Effet : SALVE activée")
         game.text_status = f"SALVE : Tir de barrage ligne {target_row + 1} !"
+        # On tire sur les 10 colonnes de la ligne visée
         for c in range(10):
             game.shoot(player, target_row, c)
-            
+
+    # ===========================================================
+    #  ERREUR (Nom inconnu)
+    # ===========================================================       
     else:
-        print(f"⚠️ ERREUR : Le nom '{card_name}' n'est pas reconnu dans cards.py !")
+        print(f" ERREUR : Le nom '{card_name}' n'est pas reconnu dans cards.py !")
