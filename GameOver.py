@@ -27,8 +27,8 @@ class GameOver:
         # --- CHARGEMENT DES IMAGES DE FOND (Sécurisé) ---
         def load_bg(filename):
             try:
-                img = pygame.image.load("assets/images/gagnant.png").convert()
-                img = pygame.image.load("assets/images/perdant.png").convert()
+                path = f"assets/images/{filename}"
+                img = pygame.image.load(path).convert()
                 return pygame.transform.scale(img, (SCREEN_WIDTH, SCREEN_HEIGHT))
             except:
                 print(f" Image manquante : {filename}")
