@@ -31,7 +31,7 @@ Le grimoire se referme, la magie opère. Le plateau de jeu s'anime d'énergies n
 ## Fonctionnalités Clés
 * **Interface Complète :** Navigation fluide entre plusieurs écrans (Menu, Placement, Jeu, Fin).
 * **Inscription Immersive :** Saisissez votre nom et nommez votre rival depuis votre bureau de commandement.
-* **Système de Cartes & Mana :** Utilisez des sorts (Radar, Bombe, Salve...) pour renverser le cours de la bataille.
+* **Système de Cartes :** Utilisez des sorts (Radar, Bombe, Salve...) pour renverser le cours de la bataille.
 * **Moteur de Particules :** Explosions dynamiques, effets magique et impacts visuels faits "main".
 * **Intelligence Artificielle :** Une IA capable de stratégie (mode "Chasse") et de dialogue via l'API Hugging Face.
 * **Design Sonore :** Musique d'ambiance, bruitages d'impacts, de sort pour renforcer l'immersion.
