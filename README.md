@@ -90,7 +90,7 @@ PROJET-L2/
 ## Installation et Lancement
 
 ### 1. Prérequis Techniques
-* **Python 3.11+** doit être installé sur votre machine.
+* **Python 3.11 doit être installé sur votre machine.
 * Une **connexion internet active** est requise pour permettre à l'IA de réfléchir et de discuter (API Hugging Face).
 
 ### 2. Récupération du Projet
