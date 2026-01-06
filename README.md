@@ -74,12 +74,12 @@ PROJET-L2/
 |-- ai_llm.py               # Connexion API (IA)
 |-- ai_personalities.py     # Dialogues de l'IA
 |-- input_handler.py        # Gestion des événements souris
-| sound_manager.py        # Gestion audio
+| sound_manager.py          # Gestion audio
 |
 |-- assets/                 # Dossier des images et sons
     |-- images/             # Sprites (Bateaux, Fond, UI)
     |-- sounds/             # Bruitages (Tirs, Explosions)
-└── rapport/               # Dossier rapport
+└── rapport/                # Dossier rapport
     │
     ├── L2_rapport_rakotoarivelo_ly.pdf     #Le fichier final pour la lecture
     ├── L2_rapport_rakotoarivelo_ly.tex     #Le fichier source modifiable
