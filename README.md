@@ -82,9 +82,9 @@ PROJET-L2/
 └── rapport/                # Dossier rapport
     │
     ├── L2_rapport_rakotoarivelo_ly.pdf     #Le fichier final pour la lecture
-    ├── L2_rapport_rakotoarivelo_ly.tex     #Le fichier source modifiable
-    │
-    └── images/                             #Les images insérées dans le rapport
+    ├── L2_rapport_rakotoarivelo_ly.tex     #Le fichier source modifiable + les autres sources
+    └── images/
+                                            #Les images insérées dans le rapport
 ````
 ---
 ## Installation et Lancement
