@@ -1,0 +1,895 @@
+\documentclass[a4paper, 12pt, twoside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[francais]{babel}
+\usepackage{lmodern}
+\usepackage{ae,aecompl}
+\usepackage[top=2.5cm, bottom=2cm, left=3cm, right=2.5cm, headheight=15pt]{geometry}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{caption}
+\usetikzlibrary{shapes.geometric, arrows, trees}
+
+% --- Configuration du Code ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+\input{pagedegarde} 
+
+%\title{Wizard Battleship}
+\entreprise{Université Paris Nanterre}
+\datedebut{4 novembre 2025}
+\datefin{\today}
+
+\membrea{42013418 Rakotoarivelo Shelly-Linda}
+\membreb{43012479 Ly Abdoulaye}
+
+
+\begin{document}
+
+% ============================================================
+% PAGE DE GARDE & REMERCIEMENTS
+% ============================================================
+\pagedegarde
+\section*{Remerciements}
+\addcontentsline{toc}{section}{Remerciements} % Ajoute la section au sommaire sans numéro
+
+Nous tenons tout d'abord à remercier notre professeur, M. DELBOT, ainsi que l'ensemble de l'équipe pédagogique pour la qualité de leur enseignement et leur encadrement tout au long de ce semestre. Ce projet a été l'occasion de mettre en pratique les concepts théoriques vus en cours et de nous confronter aux réalités du développement logiciel.
+
+Nous les remercions également de nous avoir laissé une grande liberté dans le choix du sujet, ce qui nous a permis de laisser libre cours à notre créativité et de travailler sur un projet qui nous tenait à cœur.
+
+Enfin, nous remercions nos camarades pour l'entraide et les échanges constructifs, ainsi que toutes les personnes qui ont pris le temps de tester le jeu et de nous faire des retours précieux lors des phases de débogage.
+\newpage
+
+\tableofcontents
+\newpage
+
+%========================================================
+% 1. INTRODUCTION
+%========================================================
+\section{Introduction}
+% -------------------------------------------------------
+% 1.1 CONTEXTE DU PROJET
+% -------------------------------------------------------
+\subsection{Contexte du projet}
+Ce projet a été réalisé dans le cadre de l'unité d'enseignement "Algorithmique et Programmation" en deuxième année de Licence (L2). Le cahier des charges initial était ouvert : nous devions concevoir et développer un projet informatique complet, avec une forte incitation à intégrer des outils d'Intelligence Artificielle (IA) générative, soit dans le processus de développement, soit au cœur du gameplay.
+
+% -------------------------------------------------------
+% 1.2 GENESE DU PROJET
+% -------------------------------------------------------
+\subsection{Genèse du projet : Le défi technique}
+Le choix de notre sujet a suivi un cheminement itératif. Initialement, nous nous sommes orientés vers une \textbf{Bataille Navale} traditionnelle. Ce choix nous semblait constituer une base solide et maîtrisable. Cependant, lors de la validation du sujet, notre enseignant nous a mis en garde : la mécanique classique de ce jeu est souvent jugée trop simple techniquement pour un niveau universitaire L2, à moins d'y implémenter une IA complexe basée sur un LLM (Large Language Model) pour gérer l'adversaire.\\
+
+Face à cette contrainte, nous avons mené une analyse de risques. Tout miser sur une IA connectée (type GPT) comportait des dangers majeurs : latence du réseau, réponses incohérentes ou "hallucinations" du modèle qui auraient pu rendre le jeu injouable.\\
+
+Nous avons alors transformé cette contrainte en opportunité via une approche hybride :
+\begin{itemize}
+    \item \textbf{Techniquement :} Nous avons sécurisé le projet en connectant le jeu à une vraie IA (via l'API Hugging Face) tout en implémentant un algorithme de secours robuste (fallback) pour garantir la stabilité.
+    \item \textbf{Ludiquement :} Pour dépasser la simplicité initiale, nous avons totalement repensé le Game Design autour du thème "Sorcier". Ce choix n'est pas uniquement esthétique ; il légitime l'introduction de mécaniques complexes (gestion de mana, cartes de sorts, effets de zone) qui seraient incohérentes dans une bataille navale militaire classique.
+\end{itemize}
+% -------------------------------------------------------
+% 1.3 PRESENTATION DU JEU
+% -------------------------------------------------------
+\subsection{Présentation de "Wizard Battleship"}
+Le résultat de ce travail est \textbf{"Wizard Battleship"} (L'Héritage des Arcanes). Bien plus qu'une simple reproduction du jeu de société, c'est une expérience immersive qui plonge le joueur dans la peau d'un sorcier des mers. L'objectif n'est pas seulement de détruire la flotte adverse le plus rapidement possible, mais de le faire avec sang-froid. Le joueur doit gérer ses ressources (cartes sortilèges) et prendre des décisions pondérées : faut-il utiliser une "Bombe" maintenant ou la garder pour une "Salve" dévastatrice plus tard ? C'est cet équilibre entre rapidité et réflexion qui définit l'identité de notre jeu.
+
+\newpage
+% ============================================================
+% 2. ENVIRONNEMENT DE TRAVAIL (ORGANISATION)
+% ============================================================
+\section{Environnement de travail et Organisation}
+% -------------------------------------------------------
+% 2.1 OUTILS ET METHODES
+% -------------------------------------------------------
+\subsection{Outils et Méthodes collaboratives}
+Pour structurer notre collaboration à distance, nous avons établi un écosystème d'outils complémentaires :
+\begin{itemize}
+    \item \textbf{Développement :} Visual Studio Code a été notre IDE principal, configuré avec les linters Python.
+    \item \textbf{Planification :} Un document de suivi partagé (Google Docs) servait de feuille de route dynamique pour lister les tâches et suivre l'avancement.
+    \item \textbf{Versionning (Git/GitHub) :} Travail sur un dépôt commun. Cela nous a permis de fusionner le code du moteur (Backend) géré par Abdoulaye et celui de l'interface (Frontend) par Shelly, tout en gérant les conflits. Nous avons adopté une stratégie de branches. La branche \texttt{main} était sanctuarisée pour le code stable. Le développement des nouvelles fonctionnalités (interface, effets) s'effectuait sur une branche dédiée (\textit{feature branch}), permettant de tester les modifications sans risquer de compromettre le projet principal.
+    \item \textbf{Communication :} Discord a servi de bureau virtuel pour les réunions de conception et le partage d'écran lors des sessions de débogage.
+\end{itemize}
+% -------------------------------------------------------
+% 2.2 ORGANISATION
+% -------------------------------------------------------
+\subsection{Organisation : Une approche itérative}
+Notre méthode de travail a évolué en deux grandes phases constructives :
+\begin{enumerate}
+    \item \textbf{Phase 1 (Le Squelette) :} Abdoulaye a d'abord mis en place l'architecture technique du projet (logique fondamentale, connexion IA, grille). À ce stade, nous avions un prototype fonctionnel mais visuellement austère.
+    \item \textbf{Phase 2 (L'Expérience) :} Shelly a ensuite transformé le prototype en un jeu complet. Elle a retravaillé l'interface, ajouté la narration en 3 phases (Bureau/Grimoire/Combat) et intégré les effets visuels.
+\end{enumerate}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|p{4.5cm}|p{5cm}|p{5cm}|}
+\hline
+\rowcolor{gray!20} \textbf{Domaine} & \textbf{[SHELLY] (Front \& UX)} & \textbf{[ABDOULAYE] (Back \& IA)} \\
+\hline
+\textbf{Architecture \& IA} & Intégration graphique \& Mode Target & \textbf{Responsable} (Squelette, API HuggingFace) \\
+\hline
+\textbf{Interface (UI)} & \textbf{Responsable} (Fenêtres, Grilles, Menu, Orbe) & Support technique \\
+\hline
+\textbf{Gameplay Visuel} & \textbf{Responsable} (Particules, Feedbacks) & \textbf{Responsable} (Logique Cartes, Audio) \\
+\hline
+\textbf{Gestion de Projet} & \textbf{Responsable} Documentation (Rapport/README), Gestion des conflits & \textbf{Initialisation} (Git), Gestion des conflits \\
+\hline
+\end{tabular}
+\caption{Matrice de répartition des tâches}
+\end{table}
+
+% ============================================================
+% 3. MÉTHODOLOGIE ET UTILISATION DE L'IA GÉNÉRATIVE
+% ============================================================
+\section{Méthodologie : L'IA comme Assistant de Développement}
+
+Au-delà de l'IA intégrée au gameplay (l'adversaire "Léviathan"), nous avons utilisé les modèles génératifs (principalement ChatGPT et Gemini) comme assistants de développement ("Co-pilotes") tout au long du projet.
+Cette approche nous a permis de gagner du temps sur les tâches répétitives pour nous concentrer sur la logique complexe et l'architecture.
+
+% -------------------------------------------------------
+% 3.1 APPORTS
+% -------------------------------------------------------
+\subsection{Apports Principaux}
+L'aide de l'IA a été décisive sur trois aspects majeurs :
+
+\begin{itemize}
+    \item \textbf{Génération de "Boilerplate" :} Au début du projet, l'IA nous a aidés à générer rapidement les structures de base des classes \texttt{Player} et \texttt{Grid}, nous évitant le syndrome de la page blanche.
+    
+    \item \textbf{Refactoring et Modularisation :} C'est sans doute l'apport le plus critique. Lorsque le fichier principal est devenu trop massif (+600 lignes), l'IA a assisté le découpage du code en modules distincts (\texttt{game.py}, \texttt{utils.py}, \texttt{settings.py}). Cette étape minutieuse a été essentielle pour garantir la lisibilité et la maintenabilité du projet.
+    
+    \item \textbf{Résolution de problèmes techniques :} 
+    \begin{itemize}
+        \item \textit{Débogage :} Analyse rapide des traces d'erreurs (Stack Traces) pour identifier les causes de crashs.
+        \item \textit{Mathématiques :} Suggestion de formules, comme l'utilisation de \texttt{math.sin()} pour l'animation fluide de l'orbe dans le menu.
+        \item \textit{Regex :} Aide à la construction d'expressions régulières pour nettoyer proprement le JSON renvoyé par l'API Hugging Face.
+    \end{itemize}
+\end{itemize}
+% -------------------------------------------------------
+% 3.2 LIMITES ET CRITIQUES
+% -------------------------------------------------------
+\subsection{Limites et Regard Critique}
+Si l'IA est un accélérateur, elle s'est aussi révélée faillible. Nous avons identifié plusieurs cas où une intervention humaine stricte était indispensable :
+
+\paragraph{Hallucinations Techniques}
+À plusieurs reprises, les modèles nous ont proposé d'utiliser des méthodes de \texttt{pygame} qui n'existent pas (ou plus).
+\textit{Exemple :} L'invention d'une fonction native pour dessiner des rectangles arrondis, alors qu'il fallait en réalité implémenter une fonction personnalisée.
+
+\paragraph{Perte de Contexte}
+Sur les fichiers longs, l'IA avait tendance à "oublier" les modifications récentes ou les variables définies dans d'autres fichiers. Nous avons dû apprendre à ne lui fournir que les contextes pertinents plutôt que de lui demander de gérer l'intégralité du code.
+
+\vspace{0.3cm}
+\textbf{Conclusion :} L'IA ne nous a pas remplacés. Elle a agi comme un catalyseur, mais la décision finale sur l'architecture et la logique est toujours restée entre nos mains.
+\newpage
+% ============================================================
+% 4. DESCRIPTION ET GAME DESIGN
+% ============================================================
+\section{Description du projet et Game Design}
+
+% -------------------------------------------------------
+% 4.1 CONCEPT ET REGLES
+% -------------------------------------------------------
+\subsection{Concept et Règles}
+Notre jeu, \textit{Wizard Battleship}, revisite la bataille navale classique en transposant l'affrontement militaire dans un duel de sorciers.\\
+
+\begin{itemize}
+    \item \textbf{Base classique :} Une grille de 10x10 et une flotte de 5 navires à positionner secrètement.
+    \item \textbf{Condition de victoire :} La destruction totale de la flotte adverse (ou mode "Mort Subite" envisagé en amélioration).
+    \item \textbf{Innovation :} Le remplacement des missiles par des sortilèges et l'ajout d'une gestion de ressources (cartes).
+\end{itemize}
+
+% -------------------------------------------------------
+% 4.2 LOOT
+% -------------------------------------------------------
+\subsection{Système de "Loot" (Gestion de Main)}
+Contrairement aux jeux utilisant une jauge de mana, nous avons opté pour une mécanique de "deck-building" simplifié.
+
+\begin{itemize} 
+   \item \textbf{Probabilité et Loot:} Le jeu distribue au joueur une "main" de 3 cartes tirées aléatoirement parmi 6 sorts disponibles. Cette limitation introduit une probabilité (et donc une rareté) qui force le joueur à s'adapter.
+   \item \textbf{Consommables :} Chaque carte est à usage unique. Une fois le sort lancé, la carte disparaît de l'inventaire.
+    \item \textbf {Sécurisation (UX) :} Nous avons soigné l'ergonomie. Le joueur peut cliquer sur une carte pour l'activer ("Armer le sort"), mais il peut également la désélectionner en recliquant dessus s'il change d'avis. Cela évite de gâcher un bonus précieux sur une erreur de clic. 
+\end{itemize}
+
+% -------------------------------------------------------
+% 4.3 ARSENAL
+% -------------------------------------------------------
+\subsection{L'Arsenal (Les Cartes Sortilèges)}
+Voici les effets implémentés pour enrichir la stratégie :
+
+\paragraph{1. Les Cartes Offensives}
+
+\begin{itemize}
+    \item \textbf{Salve :} L'attaque ultime. Elle déclenche un barrage d'artillerie sur toute la ligne ciblée (colonne 0 à 9), maximisant les chances de toucher plusieurs navires d'un coup.
+    \item \textbf{Bombe :} Lance une frappe aérienne à des coordonnées aléatoires. Le joueur ne choisit pas la cible, c'est le hasard qui décide où l'explosion aura lieu sur la grille ennemie.
+    \item \textbf{Double Tir :} Octroie immédiatement une munition supplémentaire, permettant de jouer deux fois de suite.
+\end{itemize}
+
+\paragraph{2. Les Cartes Tactiques}
+
+\begin{itemize}
+    \item \textbf{Radar :} Permet d'espionner une case précise. Le jeu révèle si elle contient un navire ou de l'eau, sans tirer.
+    \item \textbf{Sabotage :} Une attaque informatique sur l'IA. Elle annule le tour de l'adversaire, offrant un tour gratuit au joueur.
+    \item \textbf{Bouclier :} Active une protection temporaire sur la flotte du joueur pour encaisser les futurs tirs ennemis.
+\end{itemize}
+
+% -------------------------------------------------------
+% 4.4 IDENTITE 
+% -------------------------------------------------------
+\subsection{Identité Visuelle, Sonore et Narrative}
+L'expérience utilisateur a été pensée comme un voyage immersif en quatre actes. Nous avons voulu que le joueur ne soit pas simplement face à un logiciel, mais qu'il incarne un sorcier. Chaque interface possède une identité propre, soutenue par des arrière-plans générés par IA et un design sonore spécifique.
+
+\paragraph{1. L'Accueil : Le Calme avant la Tempête}
+L'écran titre installe le contexte narratif.
+\begin{itemize}
+    \item \textbf{Immersion :} Un arrière-plan généré par IA représentant des sorciers naviguant sur une mer agitée accueille le joueur.
+    \item \textbf{Ambiance :} Des orbes magiques volent librement sur l'écran pour dynamiser l'image statique. Les titres introduisent la dualité visuelle du jeu : \textbf{Cyan} pour les forces du joueur, \textbf{Violet} pour l'ennemi.
+\end{itemize}
+
+\paragraph{2. La Cabine du Capitaine (Identification)}
+La transition vers la saisie du nom se fait dans un cadre intimiste.
+\begin{itemize}
+    \item \textbf{Décor :} Le joueur est visuellement installé à un bureau, face à une fenêtre donnant sur l'océan. Un grimoire flotte au centre, attendant d'être signé.
+    \item \textbf{Interaction (Orbe) :} L'écriture du nom est traitée comme un rituel magique. L'orbe qui remplace la souris suit le tracé des lettres, laissant une traînée lumineuse persistante , simulant l'encre magique.
+\end{itemize}
+
+\paragraph{3. Le Grimoire Tactique (Phase de Placement)}
+Le jeu bascule littéralement "à l'intérieur" du livre.
+\begin{itemize}
+    \item \textbf{Direction Artistique :} L'interface technique de la grille est camouflée en page de parchemin ancien. La typographie (style "Harry Potter") et les teintes brunes renforcent l'aspect authentique.
+    \item \textbf{Mécanique Visuelle :} Placer un bateau équivaut à invoquer un sort. Lorsqu'un navire est positionné depuis la liste de droite, une explosion de particules valide l'action, matérialisant la flotte sur le papier.
+\end{itemize}
+
+\paragraph{4. Le Duel des Arcanes (Phase de Combat)}
+Le grimoire se referme pour laisser place à la réalité du combat en haute mer. C'est l'écran le plus riche en informations (HUD) et en effets.
+\begin{itemize}
+    \item \textbf{Atmosphère :} L'arrière-plan dévoile l'océan avec des portails magiques lumineux à l'horizon. L'écran s'anime d'énergies néons (Cyan et Violet).\\
+    \item \textbf{Interface de Combat (HUD) :}
+    \begin{itemize}
+        \item \textbf{Les Grilles :} A droite et à gauche, identifiables par leur code couleur (Cyan pour le joueur, Violet pour l'IA) et leur taille (petite pour le joueur, grande pour l'IA).
+        \item \textbf{L'Inventaire :} Les cartes sortilèges sont disposées en bas à gauche, prêtes à être activées.
+        \item \textbf{Tableau de Chasse :} Un panneau central liste la flotte ennemie. Dès qu'un navire est coulé, son nom est rayé, offrant un suivi clair de la progression.
+        \item \textbf{Dialogue IA :} En bas à droite, une zone de texte permet à l'IA de commenter le combat, rendant l'adversaire plus "vivant".
+    \end{itemize}
+    \item \textbf{Feedback Visuel (Particules) :} Chaque action déclenche une réponse immédiate. Un tir réussi provoque une explosion de particules colorées, tandis qu'un tir dans l'eau génère une simple croix.
+    \item \textbf{Design Sonore (SFX) :} L'immersion passe aussi par l'audio, avec des sons distincts pour chaque événement :
+    \begin{itemize}
+        \item \textit{Bruit d'explosion} et jingle lors d'un impact ou d'un navire coulé.
+        \item \textit{Bruit d'eau (Splash)} lors d'un tir manqué.
+        \item \textit{Chime magique} lors de l'activation d'une carte spéciale.
+        \item \textit{Musique de fond} épique pour soutenir la tension du duel.
+    \end{itemize}
+\end{itemize}
+
+\paragraph{5. Le Dénouement (Victoire ou Défaite)}
+L'écran de fin n'est pas un simple texte, mais une illustration narrative du destin du joueur :
+\begin{itemize}
+    \item \textbf{En cas de Victoire (Cyan) :} Le sorcier est représenté triomphant, bâton levé et éclairé, dominant une mer dangereuse parsemée de rochers runiques. Un poisson géant nage paisiblement à ses côtés, symbolisant sa maîtrise des éléments.
+    \item \textbf{En cas de Défaite (Violet) :} Le ton change radicalement. Le sorcier est montré vaincu dans les abysses, vêtements déchirés et bâton brisé. Le poisson géant, auparavant allié, devient ici une menace terrifiante au premier plan.
+\end{itemize}
+
+% --- TABLEAU DE SYNTHESE (CONCLUSION) ---
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|p{6cm}|p{6cm}|}
+\hline
+\rowcolor{gray!20} \textbf{Bataille Navale Classique} & \textbf{Wizard Battleship (Notre version)} \\
+\hline
+\textbf{Gameplay :} Hasard pur, tir simple. & \textbf{Gameplay :} Gestion de main (Loot de 3 cartes), stratégie de conservation. \\
+\hline
+\textbf{Visuel :} Grilles statiques. & \textbf{Visuel :} Orbes flottantes, particules, code couleur Cyan/Violet. \\
+\hline
+\textbf{Interface :} Fenêtre utilitaire. & \textbf{Interface :} Narration en 4 phases (Bureau $\rightarrow$ Grimoire $\rightarrow$ Combat $\rightarrow$ Fin). \\
+\hline
+\textbf{IA :} Aléatoire simple. & \textbf{IA Hybride :} LLM (HuggingFace) + Algorithmes. \\
+\hline
+\end{tabular}
+\caption{Synthèse : Comparatif Standard vs Version Enrichie}
+\end{table}
+\newpage
+% ============================================================
+% 5. REALISATION TECHNIQUE
+% ============================================================
+\section{Réalisation Technique et Développement}
+
+Cette section détaille l'architecture logicielle, les défis algorithmiques et les solutions mathématiques mises en œuvre. Le projet est entièrement codé en \textbf{Python 3.11} et s'appuie sur la bibliothèque \textbf{Pygame} pour la gestion bas niveau de la boucle événementielle.
+
+% ------------------------------------------------------------
+% 5.1 ARCHITECTURE (Version Corrigée - Structure Plate)
+% ------------------------------------------------------------
+\subsection{Organisation des Fichiers}
+Le projet est structuré autour d'un fichier principal \texttt{main.py} qui orchestre les différents modules. Pour simplifier les imports et l'exécution, l'ensemble des scripts Python se situe à la racine du projet, tandis que les ressources multimédias sont isolées dans un dossier \texttt{assets}.
+
+Voici l'organisation logique des fichiers du projet :
+
+\begin{verbatim}
+PROJET-L2/
+|
+|-- main.py                 # Point d'entrée (Boucle principale)
+|-- settings.py             # Configuration (Constantes)
+|
+|   [LOGIQUE JEU]
+|-- game.py                 # Gestionnaire de la partie
+|-- player.py               # Classes Joueur et Navire
+|-- placement.py            # Gestion du Drag & Drop
+|-- cards.py                # Effets des cartes bonus
+|
+|   [INTERFACE & VISUEL]
+|-- menu.py                 # Gestion du Menu Principal
+|-- input_name.py           # Saisie des pseudos
+|-- GameOver.py             # Écran de fin
+|-- draw_utils.py           # Fonctions de dessin
+|-- effects.py              # Particules et effets visuels
+|-- utils.py                # Transitions et outils
+|
+|   [INTELLIGENCE & SYSTEME]
+|-- ai_llm.py               # Connexion API (IA)
+|-- ai_personalities.py     # Dialogues de l'IA
+|-- input_handler.py        # Gestion des événements souris
+| sound_manager.py        # Gestion audio
+|
+|-- assets/                 # Dossier des images et sons
+    |-- images/             # Sprites (Bateaux, Fond, UI)
+    |-- sounds/             # Bruitages (Tirs, Explosions)
+\end{verbatim}
+
+\newpage
+% ------------------------------------------------------------
+% 5.2 AUTOMATE
+% ------------------------------------------------------------
+\subsection{Flux d'exécution et Gestion des Entrées}
+Le jeu ne suit pas un script linéaire mais réagit selon des états définis gérés dans la boucle principale. Cela permet de passer fluidement du menu au jeu sans recharger le programme.
+
+\begin{center}
+    \begin{tikzpicture}[node distance=1.5cm, every node/.style={font=\small}]
+        \tikzstyle{proc} = [rectangle, rounded corners, draw=black, fill=orange!20, text centered, minimum height=0.8cm, minimum width=3cm]
+        \tikzstyle{arrow} = [thick,->,>=stealth]
+
+        \node (menu) [proc] {Menu Principal};
+        \node (plac) [proc, below of=menu] {Phase Placement (Drag\&Drop)};
+        \node (game) [proc, below of=plac] {Boucle de Combat};
+        \node (win)  [proc, below of=game] {Écran Fin (Victoire/Défaite)};
+
+        \draw [arrow] (menu) -- (plac);
+        \draw [arrow] (plac) -- (game);
+        \draw [arrow] (game) -- (win);
+        \draw [arrow] (win.east) -- ++(0.5,0) |- (menu.east);
+    \end{tikzpicture}
+    \captionof{figure}{Diagramme simplifié de la machine à états}
+\end{center}
+
+\paragraph{Découplage des Contrôles (Input Handler)}
+Pour respecter le \textbf{Principe de Responsabilité Unique (SRP)}, la logique des clics (souris/clavier) a été extraite de la boucle de jeu. Le fichier \texttt{game.py} délègue l'événement à \texttt{input\_handler.py}, qui agit comme un routeur (clic sur carte vs clic sur grille).
+
+\begin{lstlisting}[language=Python, numbers=none, frame=single, basicstyle=\footnotesize\ttfamily]
+# game.py : Delegation simple pour garder le code propre
+def handle_event(self, event):
+    handle_game_events(self, event) # Envoi au module specialise
+\end{lstlisting}
+% ------------------------------------------------------------
+% 5.3 GRAPHIQUE ET OPTIMISATION
+% ------------------------------------------------------------
+\subsection{Algorithmes de Rendu et Optimisation}
+
+\paragraph{1. Rendu des Navires (Transparence et Continuité)}
+Pour concilier esthétique et lisibilité, nous avons développé un rendu hybride dans \texttt{draw\_utils.py} :
+\begin{itemize}
+    \item \textbf{Forme Organique :}  L'algorithme calcule la longueur totale du navire en pixels selon son orientation (Verticale/Horizontale).Il génère une forme unique englobant toutes les coordonnées.Il applique un \texttt{border\_radius} élevé (15px) pour arrondir les extrémités, donnant l'apparence d'une véritable coque de navire et non d'un assemblage de blocs.Cela permet d'avoir des navires aux formes fluides et cohérentes, peu importe leur taille. 
+    \item \textbf{Transparence (Alpha Blending) :} Le rendu utilise une couleur semi-transparente. Cela permet de laisser apparaître les lignes de la grille \textit{sous} le navire. Ainsi, le joueur profite d'un design fluide tout en identifiant précisément les coordonnées des cases occupées.
+\end{itemize}
+
+% --- IMAGE DE DÉTAIL ---
+\begin{center}
+    \includegraphics[width=0.6\textwidth]{images/bateaux.png}
+    \captionof{figure}{Zoom in-game : La transparence du navire permet de lire la grille en dessous, alliant design courbe et précision tactique.}
+\end{center}
+
+
+
+\paragraph{2. Optimisation Mémoire (Système de Particules)}
+La gestion de centaines de particules d'explosion à 60 FPS est coûteuse en ressources. Une erreur classique est de supprimer des éléments d'une liste pendant qu'on la parcourt, causant des bugs d'index.
+
+Dans \texttt{effects.py}, nous utilisons une \textbf{boucle inversée} (Reverse Loop). En parcourant la liste de la fin vers le début, nous pouvons supprimer (\texttt{pop}) les particules "mortes" sans affecter les index des éléments restants.
+
+\begin{lstlisting}[language=Python, numbers=none, frame=single, basicstyle=\footnotesize\ttfamily]
+# Parcours inverse pour suppression securisee (Garbage Collection)
+for i in range(len(self.particles) - 1, -1, -1):
+    p = self.particles[i]
+    p['timer'] -= 1
+    if p['timer'] <= 0:
+        self.particles.pop(i) 
+\end{lstlisting}
+
+\paragraph{3. Optimisation Temporelle (Gestion Asynchrone)}
+Une erreur fréquente avec Pygame est d'utiliser \texttt{time.sleep()} pour faire attendre l'IA, ce qui "gèle" la fenêtre (statut "Ne répond pas").
+Dans \texttt{game.py}, nous avons implémenté un \textbf{Timer Non-Bloquant}. Nous décrémentons un compteur (\texttt{self.ia\_delay}) à chaque frame. Cela permet aux animations (eau, particules) de continuer à tourner fluidement pendant que l'IA "réfléchit".
+
+\begin{lstlisting}[language=Python, numbers=none, frame=single, basicstyle=\footnotesize\ttfamily]
+# game.py : Gestion du delai sans figer l'ecran
+if self.ia_pending and not self.projectile:
+    if self.ia_delay > 0:
+        self.ia_delay -= 16 # Decompte du temps (1 frame ~ 16ms)
+    else:
+        self.ai_play() # L'IA joue enfin
+        self.ia_pending = False
+\end{lstlisting}
+
+% ------------------------------------------------------------
+%  5.4 MATHÉMATIQUES APPLIQUÉES
+% ------------------------------------------------------------
+\subsection{Mathématiques Appliquées (Physique et Animation)}
+
+\paragraph{1. Physique Vectorielle (Projectiles)}
+Pour l'animation des tirs dans \texttt{game.py}, nous n'utilisons pas une interpolation linéaire simple. Nous appliquons la géométrie vectorielle pour garantir une vitesse constante du projectile.
+
+Nous calculons la distance euclidienne (Théorème de Pythagore) entre le tireur et la cible, puis nous normalisons le vecteur de déplacement :
+
+\[
+Dist = \sqrt{(Target_x - Pos_x)^2 + (Target_y - Pos_y)^2}
+\]
+
+Ensuite, le déplacement à chaque frame est calculé ainsi :
+\[
+Pos_{new} = Pos_{old} + Vitesse \times \frac{(Target - Pos)}{Dist}
+\]
+\paragraph{2. Fonctions Sinusoïdales (Pulsation de l'Orbe)}
+Pour donner vie à l'interface dans \texttt{input\_name.py}, l'orbe magique possède un effet de "respiration". Au lieu de charger une animation lourde, nous calculons l'opacité (Alpha) en temps réel grâce à une fonction sinusoïdale :
+
+\[ Alpha = | \sin(\frac{Temps}{300}) | \times 200 + 55 \]
+
+\begin{lstlisting}[language=Python, numbers=none, frame=single, basicstyle=\footnotesize\ttfamily]
+# Extrait input_name.py : Oscillation entre 55 et 255
+alpha = int(abs(math.sin(current_time / 300)) * 200) + 55
+\end{lstlisting}
+Cette approche mathématique permet une animation infinie, fluide et très légère en mémoire.
+
+% ------------------------------------------------------------
+% 5.5 INTELLIGENCE ARTIFICIELLE (DETAILEE)
+% ------------------------------------------------------------
+\subsection{Intelligence Artificielle : Architecture Hybride}
+L'intégration d'une IA générative (LLM) pose des défis de latence et de fiabilité. Une IA purement textuelle pourrait "halluciner" des coordonnées invalides.
+Nous avons donc conçu, dans \texttt{ai\_llm.py}, une architecture décisionnelle robuste à \textbf{3 niveaux de priorité}.
+
+\paragraph{Niveau 1 : La Finition (Mode "Target" - Priorité Absolue)}
+C'est une logique déterministe. Si l'IA a touché un navire au tour précédent, elle "oublie" temporairement toute autre stratégie pour passer en mode chasseur.
+Elle stocke les coordonnées voisines (Haut, Bas, Gauche, Droite) dans un buffer \texttt{targets\_buffer} et les vise méthodiquement jusqu'à ce que le navire soit coulé.
+
+\begin{lstlisting}[language=Python, numbers=none, frame=single, basicstyle=\footnotesize\ttfamily]
+# Extrait de calculate_ai_move()
+# Si on a des cibles prioritaires en memoire
+for candidate in targets_buffer[:]:
+    r, c = candidate
+    # On verifie que la case est jouable (0=Eau, 1=Bateau)
+    if player_board[r][c] in [0, 1]:
+        return r, c # Tir immediat
+\end{lstlisting}
+
+\paragraph{Niveau 2 : L'Intuition (Mode LLM - Hugging Face)}
+Si aucune cible n'est prioritaire (phase de recherche), le jeu sollicite le modèle \textbf{GPT-2} via l'API Hugging Face.
+\begin{itemize}
+    \item \textbf{Construction du Prompt :} L'état du jeu est traduit en texte ("Moves played: A1, B2... Best next move?").
+    \item \textbf{Sécurité (Timeout) :} Pour éviter de figer le jeu, la requête HTTP possède un \texttt{timeout} strict de 2 secondes.
+    \item \textbf{Parsing :} La réponse JSON est nettoyée via une expression régulière (Regex) pour extraire les coordonnées.
+\end{itemize}
+
+\paragraph{Niveau 3 : Le Filet de Sécurité (Mode "Checkerboard")}
+En cas de panne réseau, de latence trop élevée, ou si le LLM renvoie une coordonnée invalide, le jeu bascule automatiquement sur un algorithme probabiliste local : la \textbf{Stratégie du Damier}.
+
+Mathématiquement, tout navire de taille $\ge 2$ occupe forcément au moins une case noire sur un damier. L'IA ne vise donc que les cases dont la somme des coordonnées est paire $(x+y)\%2 == 0$, réduisant l'espace de recherche de 50\%.
+
+\begin{lstlisting}[language=Python, numbers=none, frame=single, basicstyle=\footnotesize\ttfamily]
+# Fallback : Strategie mathematique du Damier
+checkerboard = [p for p in available if (p[0] + p[1]) % 2 == 0]
+if checkerboard and len(available) > 40:
+    # Optimisation statistique en debut de partie
+    row, col = random.choice(checkerboard)
+\end{lstlisting}
+
+\paragraph{Prompt Engineering et Personnalité}
+Enfin, pour renforcer l'immersion, le fichier \texttt{ai\_personalities.py} contient des dictionnaires de dialogues. L'IA adapte ses réactions selon le résultat du tir (Hit/Miss) et le caractère choisi ("Méchante", "Sage", "Gentille"), transformant une simple variable booléenne en une interaction narrative.
+
+\textbf{(Pour visualiser la structure JSON complète et les prompts utilisés, voir l'Annexe \ref{annexe:technique}).}
+
+% ------------------------------------------------------------
+% 5.6 ROBUSTESSE
+% ------------------------------------------------------------
+\subsection{Robustesse du Code (Duck Typing)}
+Pour éviter les crashs, nous utilisons la flexibilité de Python. Dans \texttt{GameOver.py}, l'écran de fin accepte indifféremment un objet \texttt{Player} ou une simple chaîne de caractères grâce à l'introspection (\texttt{hasattr}) :
+
+\begin{lstlisting}[language=Python, numbers=none, frame=single, basicstyle=\footnotesize\ttfamily]
+if hasattr(winner_name, 'name'):
+    self.winner_name = winner_name.name # C'est un Objet
+else:
+    self.winner_name = str(winner_name) # C'est une String
+\end{lstlisting}
+% ------------------------------------------------------------
+% 5.7 EVOLUTION
+% ------------------------------------------------------------
+\subsection{Cycle de Développement et Itérations}
+L'ensemble du projet (Combat, Menu, IA) a suivi une méthodologie de développement itérative. Pour illustrer concrètement cette montée en gamme technique et visuelle, nous prenons ici l'exemple de la \textbf{Phase de Placement}, qui a subi les transformations les plus significatives.
+
+\paragraph{Phase 1 : Le Moteur Logique (V0 - Prototype)}
+L'objectif initial était de valider les structures de données (matrices dans \texttt{player.py}) sans se soucier de l'esthétique.
+\begin{itemize}
+    \item \textbf{Focus :} Algorithmes de stockage et vérification des coordonnées.
+    \item \textbf{Rendu :} Affichage brut de la matrice via des rectangles de couleur (\texttt{pygame.draw.rect}). Le placement se faisait par coordonnées textuelles ou clics bruts, sans aide visuelle.
+\end{itemize}
+\begin{figure}[H] 
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/grimoireV0.png}
+    \caption{\textbf{V0 (Prototype)} : Validation purement technique des règles de la grille.}
+\end{figure}
+
+\newpage
+\paragraph{Phase 2 : Ergonomie et Interactions (V1 - UX)}
+Une fois la logique validée, nous avons intégré la couche d'interaction utilisateur (User Experience) dans \texttt{placement.py}.
+\begin{itemize}
+    \item \textbf{Focus :} Implémentation du "Drag \& Drop" fluide.
+    \item \textbf{Rendu :} Ajout des "Fantômes" (Ghost Ships). Le jeu calcule en temps réel si la position est valide et colore le navire en \textbf{Violet} ou \textbf{Rouge} avant le relâchement de la souris.
+\end{itemize}
+\begin{figure}[H] 
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/grimoireV1.png}
+    \caption{\textbf{V1 (Interactivité)} : Le joueur comprend visuellement les règles (violet/rouge).}
+\end{figure}
+
+\paragraph{Phase 3 : Immersion et "Game Feel" (V2 - Finale)}
+La dernière étape a consisté à appliquer l'habillage graphique (Skinning) et les effets spéciaux ("Juiciness").
+\begin{itemize}
+    \item \textbf{Refonte des Navires :} Abandon des blocs rectangulaires pour des formes continues ("Capsules") avec transparence, permettant une lecture claire de la grille sous le bateau.
+    \item \textbf{Atmosphère :} La grille technique est camouflée en page de Grimoire ancien.
+    \item \textbf{Feedback :} L'ajout du module \texttt{effects.py} déclenche des particules magiques lors de la pose d'un navire, validant l'action par un effet visuel gratifiant.
+\end{itemize}
+\begin{figure}[H] 
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/grimoireV2.png}
+    \caption{\textbf{V2 (Finale)} : L'interface technique s'efface au profit de l'univers magique.}
+\end{figure} \textbf{(Pour visualiser la version finale entière :  \ref{annexe:galerie}).}
+
+% ============================================================
+% 6. BIBLIOTHEQUES ET OUTILS
+% ============================================================
+\section{Bibliothèques et Technologies}
+Dans le cadre de notre projet, nous avons sélectionné un ensemble de technologies éprouvées pour garantir la stabilité et la fluidité du jeu.
+% -------------------------------------------------------
+% 6.1 LANGAGE ET ENVIRONNEMENT
+% -------------------------------------------------------
+\subsection{Langage et Environnement}
+Le projet est développé en \textbf{Python 3.11}\footnote{\url{https://www.python.org/downloads/release/python-3110/}}. 
+Cette version spécifique a été choisie pour sa parfaite compatibilité avec les modules graphiques récents, tout en offrant des performances optimales pour la boucle de jeu.
+% -------------------------------------------------------
+% 6.2 BIBLIOTHEQUES EXTERNES
+% -------------------------------------------------------
+\subsection{Bibliothèques Externes}
+\begin{itemize}
+    \item \textbf{Pygame (Moteur du jeu)}\footnote{\url{https://he-arc.github.io/livre-python/pygame/index.html}} : \\
+    C'est la colonne vertébrale du projet. Ce module gère l'affichage des fenêtres, la boucle événementielle (clavier/souris), les sprites (navires, grilles) ainsi que le mixage sonore. Nous l'avons privilégié pour sa robustesse face à la gestion temps réel.
+    
+    \item \textbf{Hugging Face (Intelligence Artificielle)}\footnote{\url{https://huggingface.co/docs/inference-providers/tasks/index}} : \\
+    Pour animer l'adversaire, nous utilisons l'API d'inférence de Hugging Face. Via le module standard \texttt{requests}, le jeu envoie le contexte de la partie à un modèle de langage (LLM) distant qui génère des réponses textuelles dynamiques et contextuelles.
+    
+    \item \textbf{Arcade (Testé et abandonné)}\footnote{\url{https://api.arcade.academy/en/stable/}} : \\
+    Initialement envisagée pour sa modernité, cette bibliothèque a été écartée après la phase de prototypage en raison de la complexité de gestion des animations frame par frame (détails en section 6).
+\end{itemize}
+% -------------------------------------------------------
+% 6.3 MODULES STANDARDS
+% -------------------------------------------------------
+\subsection{Modules Standards Python}
+En complément, nous exploitons les bibliothèques natives pour la logique interne :
+\begin{itemize}
+    \item \texttt{sys} : Indispensable pour interagir avec l'interpréteur, il permet notamment de fermer proprement le programme et la fenêtre Pygame lors de la sortie.
+    \item \texttt{re} (Regular Expressions) : Utilisé pour le traitement avancé des chaînes de caractères, notamment pour nettoyer ou valider les entrées textuelles et les réponses générées par l'IA
+    \item \texttt{random} : Pour la génération aléatoire du placement des navires ennemis et le tirage des cartes.
+    \item \texttt{math} : Pour les calculs de trajectoires et les animations sinusoïdales (l'orbe du menu).
+    \item \texttt{time} : Pour gérer les délais et le rythme de jeu de l'IA.
+\end{itemize}
+% ============================================================
+% 7. DIFFICULTÉS ET SOLUTIONS
+% ============================================================
+\section{Difficultés rencontrées}
+% -------------------------------------------------------
+% 7.1 CHOIX DU MOTEUR GRAPHIQUE
+% -------------------------------------------------------
+\subsection{Choix du moteur graphique : De Arcade à Pygame}
+Initialement, nous avions opté pour la bibliothèque \texttt{arcade}, réputée pour sa modernité. Cependant, après une phase de prototypage, nous avons rencontré des limitations bloquantes.
+Bien que puissante, \texttt{arcade} impose une structure rigide qui complexifiait inutilement la gestion de nos animations personnalisées (particules, mouvements de projectiles). De plus, l'affichage d'éléments simples nécessitait un travail de composition fastidieux inadapté à notre besoin.
+Face à ces contraintes, nous avons pris la décision de migrer vers \textbf{Pygame}. Ce changement nous a offert un contrôle plus direct sur la boucle événementielle et a grandement facilité l'intégration des assets graphiques et sonores, stabilisant ainsi le développement.
+% -------------------------------------------------------
+% 7.2 SYNCRO
+% -------------------------------------------------------
+\subsection{Synchronisation Modèle-Vue}
+Une difficulté majeure a résidé dans la synchronisation entre la logique interne (la classe \texttt{Player}) et l'affichage.
+Le jeu doit gérer de nombreuses données simultanément : positions des bateaux, points de vie, cartes en main. Au début, l'actualisation de ces données entraînait des désynchronisations graphiques (problèmes de menus, de tirs fantômes). Nous avons dû restructurer le code pour que chaque modification de l'état du joueur (Logique) soit immédiatement et correctement reflétée à l'écran (Vue).
+% -------------------------------------------------------
+% 7.3 INCOHERENCE AFFICHAGE
+% -------------------------------------------------------
+\subsection{Incohérence d'affichage des résultats (Débogage)}
+Une difficulté particulière est survenue lors de la finalisation de l'interface de "Game Over". Dans le panneau récapitulatif des scores, le jeu affichait le nom du perdant à la fois dans la case "Vainqueur" et dans la case "Perdant", créant une confusion totale sur l'issue de la partie.
+
+Le problème était vicieux car le programme ne renvoyait aucune erreur.
+\textbf{Méthode de résolution :} Pour comprendre ce comportement, nous avons dû mettre en place un débogage par traces (logs) dans le terminal. En affichant via des \texttt{print} les valeurs des variables \texttt{winner} et \texttt{loser} juste avant l'affichage graphique, nous avons réalisé que la variable du vainqueur était correctement identifiée par le moteur, mais mal transmise à la fonction d'affichage textuel (une erreur d'inattention dans l'appel des variables). L'utilisation de la console a été décisive pour isoler ce bug invisible.
+% -------------------------------------------------------
+% 7.4 LOGIQUE CARTES
+% -------------------------------------------------------
+\subsection{La logique des Cartes Spéciales}
+L'implémentation du système de cartes a constitué notre principal défi algorithmique, en particulier pour la carte \textbf{"Double Tir"}.
+Cette carte modifie la règle fondamentale de l'alternance des tours.
+Initialement, le jeu passait automatiquement au tour adverse après l'utilisation de la carte, rendant son effet nul. Le moteur de jeu considérait l'action "utiliser une carte" comme la fin du tour.
+Après correction du premier bug, un problème de comptage est apparu. Bien que le joueur dispose visuellement de deux tirs, le jeu n'en enregistrait qu'un seul dans la logique interne.
+
+\textbf{Solution :} Pour résoudre cette difficulté, nous avons modifié la variable gérant le nombre de tirs autorisés par joueur. Lors de l'activation de la carte, cette variable passe explicitement à 2. Le changement de tour est désormais conditionné par l'épuisement de ce compteur, ce qui a permis de résoudre définitivement le problème.
+\newpage
+
+% ============================================================
+% 8. BILAN
+% ============================================================
+\section{Bilan}
+% -------------------------------------------------------
+% 8.1 BILAN DU PROJET
+% -------------------------------------------------------
+\subsection{Bilan du projet}
+Ce projet nous a permis de mieux comprendre les différentes facettes du développement d'un jeu, et de constater qu'un concept en apparence simple, comme la bataille navale, peut rapidement devenir complexe et stimulant.
+
+Cette complexité repose notamment sur la combinaison de plusieurs défis techniques :
+\begin{itemize}\setlength\itemsep{0em}
+    \item \textbf{Une gestion graphique avancée }(animations, interface) ;
+    \item Une idée originale conçue par nos soins ;
+    \item L'intégration d'un \textbf{LLM (Intelligence Artificielle)} au sein de la logique du jeu ;
+    \item \textbf{Un système de cartes} venant enrichir le gameplay stratégique.
+\end{itemize}
+
+Ce travail nous a également permis de comprendre le "squelette" d'un jeu vidéo, depuis la logique principale (Main Loop) jusqu'à la gestion de ses mécaniques avancées. Enfin, nous avons acquis une meilleure maîtrise de la \textbf{gestion des sons}, de leur synchronisation et de leur impact crucial sur l'expérience de jeu.
+% -------------------------------------------------------
+% 8.2 PISTES D'AMELIORATION 
+%-------------------------------------------------------
+\subsection{Pistes d'Amélioration (Perspectives)}
+Si le temps le permettait, voici les fonctionnalités identifiées dans notre roadmap pour enrichir l'expérience :
+
+\paragraph{Interface et Expérience Utilisateur (UX)}
+Pour rendre le jeu plus confortable et immersif :
+\begin{itemize}\setlength\itemsep{0em}
+    \item \textbf{Menu d'Options :} Ajouter une interface pour régler les volumes sonores (Musique vs Bruitages) et la résolution de la fenêtre en temps réel.
+    \item \textbf{Système d'Avatars Réactifs :} Intégrer des portraits ("Mascottes") qui réagissent émotionnellement selon l'état de la partie (sourire si le tir touche, grimace si le joueur est touché).
+    \item \textbf{Personnalisation :} Laisser le choix de l'allégeance au début (Team Cyan ou Team Violet), modifiant ainsi tout le thème graphique.
+\end{itemize}
+
+\paragraph{ Nouveaux Modes de Jeu}
+Pour augmenter la rejouabilité :
+\begin{itemize}\setlength\itemsep{0em}
+    \item \textbf{Mode "Mort Subite" :} Une variante hardcore où chaque joueur ne possède qu'un seul navire. La moindre erreur est fatale.
+    \item \textbf{IA Modulable :} Un sélecteur de difficulté à l'entrée :
+    \begin{itemize}\setlength\itemsep{0em}
+        \item \textit{Novice :} Tirs purement aléatoires.
+        \item \textit{Stratège :} L'IA actuelle (Chasse + LLM).
+        \item \textit{Omniscient :} Une IA "Impossible" qui connaîtrait l'emplacement des navires (probabilités truquées).
+    \end{itemize}
+    \item \textbf{Cartes "Risque" :} Ajout de sortilèges à double tranchant (ex: 50\% de chance de toucher l'ennemi, 50\% de chance de se blesser soi-même).
+\end{itemize}
+
+\paragraph{ Architecture Technique}
+\begin{itemize}\setlength\itemsep{0em}
+    \item \textbf{Multijoueur Réseau :} Utiliser les sockets (`socket`) pour permettre à deux humains de s'affronter sur deux machines différentes.
+    \item \textbf{Sauvegarde (Sérialisation) :} Implémenter un système de sauvegarde (via JSON ou Pickle) pour permettre au joueur de reprendre une partie interrompue.
+\end{itemize}
+
+\vspace{0.5cm}
+\textbf{Conclusion finale :}
+\textit{Wizard Battleship} a été une expérience formatrice qui nous a permis de consolider nos acquis en Python tout en découvrant les contraintes d'un projet réel. Nous sommes fiers d'avoir livré un jeu fonctionnel, stable et doté d'une véritable identité visuelle.
+\newpage
+
+% =========================================================
+% 9. ANNEXES
+% =========================================================
+\newpage
+\section{Annexes}
+
+% -------------------------------------------------------
+% 9.1 GUIDE D'INSTALLATION ET EXECUTION
+% -------------------------------------------------------
+\subsection{ Guide d'Installation et d'Exécution}
+\textit{(Contenu extrait du fichier README.md du projet)}
+
+\paragraph{1. Prérequis Techniques}
+\begin{itemize} \setlength\itemsep{0em}
+    \item \textbf{Python 3.11+} doit être installé sur votre machine.
+    \item Une \textbf{connexion internet active} est requise pour permettre à l'IA de réfléchir et de discuter (API Hugging Face).
+\end{itemize}
+
+\paragraph{2. Récupération du Projet}
+Ouvrez un terminal et clonez le dépôt (ou extrayez l'archive fournie) :
+\begin{verbatim}
+git clone https://github.com/Abdoulaye-collab/PROJET-L2.git
+cd PROJET-L2
+\end{verbatim}
+
+\paragraph{3. Installation des Dépendances}
+Le jeu nécessite \texttt{pygame} pour le moteur graphique et \texttt{huggingface\_hub} pour l'intelligence artificielle. Installez-les via pip :
+\begin{verbatim}
+pip install pygame huggingface_hub
+\end{verbatim}
+
+\paragraph{4. Configuration de l'IA}
+\textit{Note pour la correction :} Une clé API Hugging Face valide est déjà intégrée dans le code source (\texttt{ai\_llm.py}). Vous n'avez aucune configuration à effectuer : le module de chat et la stratégie avancée de l'IA fonctionneront immédiatement.
+
+\paragraph{5. Lancer le Jeu}
+Une fois dans le dossier du projet, lancez simplement la commande :
+\begin{verbatim}
+python main.py
+\end{verbatim}
+\textit{(Note : Sur certains systèmes Mac/Linux, utilisez \texttt{python3 main.py})}
+
+{\textwidth}
+\paragraph{6. Commandes et Contrôles}
+Le jeu se joue intégralement à la souris pour une fluidité maximale.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.4} % Aère le tableau
+    \begin{tabular}{|p{4cm}|p{4cm}|p{5cm}|}
+        \hline
+        \textbf{Action} & \textbf{Commande} & \textbf{Contexte} \\
+        \hline
+        \textbf{Placer un navire} & Clic Gauche & Phase de Placement \\
+        \hline
+        \textbf{Pivoter un navire} & Touche \texttt{R} & Phase de Placement \\
+        \hline
+        \textbf{Tirer} & Clic Gauche & Phase de Combat (Grille Ennemie) \\
+        \hline
+        \textbf{Activer une Carte} & Clic Gauche sur la carte & Phase de Combat (Inventaire) \\
+        \hline
+        \textbf{Utiliser la Carte} & Clic Gauche & Phase de Combat (Grille Ennemie) \\
+        \hline
+        \textbf{Annuler la Carte} & Clic Gauche sur la carte & Phase de Combat (Désélection) \\
+        \hline
+        \textbf{Quitter} & Croix de la fenêtre & À tout moment \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\paragraph{Dépannage rapide}
+\setlength\itemsep{0em}
+\begin{itemize}
+    \item \textbf{Erreur ModuleNotFoundError :} Vérifiez que vous avez bien lancé la commande \texttt{pip install} de l'étape 3.
+    \item \textbf{Pas de son :} Vérifiez que vos haut-parleurs sont activés (le jeu utilise Pygame Mixer).
+    \item \textbf{L'IA ne répond pas :} Vérifiez votre connexion internet. Si le réseau de l'université bloque les API externes, essayez en partage de connexion via un téléphone.
+\end{itemize}
+
+% -------------------------------------------------------
+% 9.2 CONFIG IA
+% -------------------------------------------------------
+\label{annexe:technique}
+\subsection{Configuration de l'IA (Prompt Engineering)}
+Pour donner une personnalité au "Léviathan", nous utilisons un dictionnaire de configuration envoyé au LLM. Voici l'extrait de code définissant la personnalité \textbf{"Méchante"} :
+
+\begin{lstlisting}[language=Python, frame=single, title=Extrait de ai\_personalities.py]
+"Mechante": {
+    "style": "Tu es une IA arrogante, mechante et moqueuse.",
+    # Phrases pre-definies en cas de succes (HIT)
+    "hit": [
+        "HAHA ! Prends ca !",
+        "Touché ! Tu n'es pas de taille !",
+        "Encore un coup magistral de moi !"
+    ],
+    # Phrases pre-definies en cas d'échec (MISS)
+    "miss": [
+        "Tch... chanceux !",
+        "Hmph, ça ne se reproduira pas.",
+        "Rate, mais profite... ça ne durera pas."
+    ]
+}
+\end{lstlisting}
+% -------------------------------------------------------
+% 9.3 CONSTANTES 
+% -------------------------------------------------------
+\subsection{Constantes d'Équilibrage (settings.py)}
+Le fichier \texttt{settings.py} centralise toute la configuration. Voici les valeurs réelles utilisées pour l'affichage et le gameplay :
+
+\begin{lstlisting}[language=Python, frame=single, title=Extrait de settings.py ]
+# --- 1. DIMENSIONS DE L'ÉCRAN ---
+SCREEN_WIDTH = 1400 
+SCREEN_HEIGHT = 800 
+# --- 2. GAMEPLAY & GRILLES ---
+GRID_SIZE = 10       # Grille de 10x10 cases
+PROJECTILE_SPEED = 80 # Vitesse des animations
+# Gestion asymétrique des tailles de grille
+CELL_SIZE_PLAYER = 35 # Grille Joueur (plus petite)
+CELL_SIZE_IA = 55     # Grille IA (plus grande, cible principale)
+# --- 3. PALETTE DE COULEURS (RGB) ---
+COLOR_UI_BACKGROUND = (50, 60, 90)   # Fond bleu nuit
+COLOR_MAGIC_PLAYER = (0, 180, 210)   # Cyan (Thème Joueur)
+COLOR_MAGIC_ENEMY = (160, 32, 240)   # Violet (Thème IA)
+COLOR_HIT = (255, 0, 0)              # Rouge (Impact)
+# --- 4. TYPOGRAPHIE ---
+FONT_NAME = 'assets/fonts/Sekuya-Regular.ttf'
+FONT_NAME_GRIMOIRE = 'assets/fonts/MagicSchoolOne.ttf'
+\end{lstlisting}
+\newpage
+
+% -------------------------------------------------------
+% 9.4 CREDITS ET RESSOURCES
+% -------------------------------------------------------
+\subsection{Crédits et Ressources}
+Ce projet a été réalisé en utilisant des outils open-source et des ressources libres de droits.
+
+\paragraph{Technologies et Développement}
+\begin{itemize}
+    \item \textbf{Moteur de Jeu :} \texttt{Pygame} (basé sur la bibliothèque SDL).
+    \item \textbf{Intelligence Artificielle :} API d'inférence \textit{Hugging Face} (Modèles GPT-2 ).
+    \item \textbf{Assistance au code :} Utilisation de ChatGPT et Gemini pour le refactoring et le débogage.
+\end{itemize}
+
+\paragraph{Ressources Graphiques et Sonores}
+\begin{itemize}
+    \item \textbf{Assets Visuels :} La majorité des illustrations (fonds) ont été générées par IA via \textbf{Google Gemini}.
+    \item \textbf{Audio :} Effets sonores (tirs, impacts, ambiance) provenant de la banque de sons libres \href{https://freesound.org/}{\textit{Freesound.org}}.
+    \item \textbf{Typographie :} Polices d'écriture utilisées pour l'interface, provenant de \href{https://fonts.google.com/}{\textit{fonts.google.com}} et autres typographies libres.
+\end{itemize}
+\newpage
+% -------------------------------------------------------
+% 9.5 GALERIE
+% -------------------------------------------------------
+\label{annexe:galerie}
+\noindent\begin{minipage}{\textwidth}
+\subsection{ Galerie : Parcours d'une Session de Jeu}
+Cette galerie illustre le déroulement complet d'une partie, mettant en évidence la cohérence graphique et l'ergonomie.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/annexes_accueil.png} 
+    \caption{\textbf{1. Menu Principal :} L'écran d'accueil plonge le joueur dans l'ambiance.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/annexes_noms.png} 
+    \caption{\textbf{2. Saisie des Identités :} L'orbe central s'anime pour indiquer le tour.}
+\end{figure}
+\end{minipage}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/annexes_grimoire.png} 
+    \caption{\textbf{3. Phase de Placement :} Le Drag \& Drop avec prévisualisation (Vert/Rouge).}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/annexes_combat.png} 
+    \caption{\textbf{4. Le Combat :} Interface de tir et journal d'action en temps réel.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{images/annexes_victoire.png} \hfill
+    \includegraphics[width=0.45\textwidth]{images/annexes_defaite.png}
+    \caption{\textbf{5. Victoire (Cyan) vs Défaite (Violet)} : Adaptation dynamique du thème.}
+\end{figure}
+
+\end{document}
