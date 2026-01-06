@@ -52,33 +52,33 @@ Le jeu se joue entièrement à la souris pour une fluidité maximale.
 Voici comment est organisé le code source :
 ```text
 PROJET-L2/
-│
-├── main.py                 #  Point d'entrée principal du programme
-├── settings.py             #  Configuration globale (Dimensions, Couleurs, Assets)
-│
-├──  Moteur de Jeu
-│   ├── game.py             # Cœur du jeu : Boucle principale, tours, tirs
-│   ├── player.py           # Classe Joueur : Gestion de la grille, flotte et inventaire
-│   ├── placement.py        # Phase de placement des navires (Drag & Drop)
-│   └── cards.py            # Logique des sortilèges (Double Tir, Radar, etc.)
-│
-├──  Interface & Graphismes
-│   ├── menu.py             # Menu Principal animé
-│   ├── input_name.py       # Écran de saisie des noms
-│   ├── GameOver.py         # Écran de fin de partie (Victoire/Défaite)
-│   ├── draw_utils.py       # Fonctions de dessin spécifiques (Grilles, HUD, Bateaux)
-│   ├── effects.py          # Système de particules (Explosions, Magie)
-│   └── utils.py            # Utilitaires génériques (Transitions, Texte contouré)
-│
-├──  Contrôles & Audio
-│   ├── input_handler.py    # Gestionnaire d'événements (Clics souris, Clavier)
-│   └── sound_manager.py    # Gestionnaire audio centralisé (Musique, SFX)
-│
-├──  Intelligence Artificielle
-│   ├── ai_llm.py           # Algorithme de décision de tir (Stratégie)
-│   └── ai_personalities.py # Système de dialogue et réactions de l'IA
-│
-└──  assets/               # Dossier contenant Images, Sons et Polices
+|
+|-- main.py                 # Point d'entrée (Boucle principale)
+|-- settings.py             # Configuration (Constantes)
+|
+|   [LOGIQUE JEU]
+|-- game.py                 # Gestionnaire de la partie
+|-- player.py               # Classes Joueur et Navire
+|-- placement.py            # Gestion du Drag & Drop
+|-- cards.py                # Effets des cartes bonus
+|
+|   [INTERFACE & VISUEL]
+|-- menu.py                 # Gestion du Menu Principal
+|-- input_name.py           # Saisie des pseudos
+|-- GameOver.py             # Écran de fin
+|-- draw_utils.py           # Fonctions de dessin
+|-- effects.py              # Particules et effets visuels
+|-- utils.py                # Transitions et outils
+|
+|   [INTELLIGENCE & SYSTEME]
+|-- ai_llm.py               # Connexion API (IA)
+|-- ai_personalities.py     # Dialogues de l'IA
+|-- input_handler.py        # Gestion des événements souris
+| sound_manager.py        # Gestion audio
+|
+|-- assets/                 # Dossier des images et sons
+    |-- images/             # Sprites (Bateaux, Fond, UI)
+    |-- sounds/             # Bruitages (Tirs, Explosions)
 └── rapport/               # Dossier rapport
     │
     ├── L2_rapport_rakotoarivelo_ly.pdf     #Le fichier final pour la lecture
@@ -90,7 +90,7 @@ PROJET-L2/
 ## Installation et Lancement
 
 ### 1. Prérequis Techniques
-* **Python 3.11 doit être installé sur votre machine.
+* **Python 3.11** doit être installé sur votre machine.
 * Une **connexion internet active** est requise pour permettre à l'IA de réfléchir et de discuter (API Hugging Face).
 
 ### 2. Récupération du Projet
